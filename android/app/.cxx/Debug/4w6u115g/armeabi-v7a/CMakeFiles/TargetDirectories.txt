@@ -1,0 +1,4 @@
+/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/armeabi-v7a/CMakeFiles/android_native_app_glue.dir
+/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/armeabi-v7a/CMakeFiles/mu_android_bootstrap.dir
+/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/armeabi-v7a/CMakeFiles/rebuild_cache.dir

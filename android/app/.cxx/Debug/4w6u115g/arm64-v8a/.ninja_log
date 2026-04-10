@@ -1,0 +1,9 @@
+# ninja log v5
+0	253	1775005395315133040	CMakeFiles/android_native_app_glue.dir/Users/bramante/Library/Android/sdk/ndk/26.1.10909125/sources/android/native_app_glue/android_native_app_glue.c.o	969c48ff7618d4b6
+4	51	1775005410347870338	CMakeFiles/mu_android_bootstrap.dir/Users/bramante/Downloads/RoxGaming_5.2_-_UPDATE_FPS_60/Source/Main/source/Platform/AndroidEglWindow.cpp.o	126b4fde7231c567
+1	87	1775005410382687347	CMakeFiles/mu_android_bootstrap.dir/android_bootstrap.cpp.o	9ae6aee1dea4d1b6
+1	335	1775005410629944526	CMakeFiles/mu_android_bootstrap.dir/Users/bramante/Downloads/RoxGaming_5.2_-_UPDATE_FPS_60/Source/Main/source/Platform/RenderBackend.cpp.o	e50000c4009c5635
+1	451	1775005410744390442	CMakeFiles/mu_android_bootstrap.dir/Users/bramante/Downloads/RoxGaming_5.2_-_UPDATE_FPS_60/Source/Main/source/Platform/OpenGLESRenderBackend.cpp.o	7be0ea3b0b1ec12b
+1	590	1775005410888346000	libandroid_native_app_glue.a	b49435da844ffd69
+591	641	1775005410935238276	/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/build/intermediates/cxx/Debug/4w6u115g/obj/arm64-v8a/libmu_android_bootstrap.so	90ae8329800fbca7
+2	265	1775005558721718939	/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/build/intermediates/cxx/Debug/4w6u115g/obj/arm64-v8a/libmu_android_bootstrap.so	90ae8329800fbca7

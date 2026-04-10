@@ -1,0 +1,182 @@
+plugins {
+    id("com.android.application")
+}
+
+def muClientDataDirProvider = providers.gradleProperty("muClientDataDir")
+    .map { value -> file(value) }
+    .orElse(rootProject.file("../../../Client/Data"))
+
+def muClientConfigIniProvider = providers.gradleProperty("muClientConfigIni")
+    .map { value -> file(value) }
+    .orElse(rootProject.file("../../../Client/config.ini"))
+
+def muClientRuntimeConfigIniProvider = providers.gradleProperty("muClientRuntimeConfigIni")
+    .map { value -> file(value) }
+    .orElse(rootProject.file("../../../Client/client_runtime.ini"))
+
+def muAutoSyncClientDataProvider = providers.gradleProperty("muAutoSyncClientData")
+    .map { value -> value.toBoolean() }
+    .orElse(true)
+
+def muUseManualAssetsDataProvider = providers.gradleProperty("muUseManualAssetsData")
+    .map { value -> value.toBoolean() }
+    .orElse(true)
+
+def muManualAssetsDataDir = file("src/main/assets/Data")
+def muManualConfigIniFile = file("src/main/assets/config.ini")
+def muManualRuntimeConfigIniFile = file("src/main/assets/client_runtime.ini")
+def muHasManualAssetsData = muUseManualAssetsDataProvider.get() && new File(muManualAssetsDataDir, "Configs/Configs.xtm").exists()
+def muHasManualConfigIni = muManualConfigIniFile.exists()
+def muHasManualRuntimeConfigIni = muManualRuntimeConfigIniFile.exists()
+def muGeneratedStaticAssetsDirProvider = layout.buildDirectory.dir("generated/staticAssets")
+def muGeneratedAssetsDirProvider = layout.buildDirectory.dir("generated/muAssets")
+def muGeneratedDataDirProvider = layout.buildDirectory.dir("generated/muAssets/Data")
+def muGeneratedManifestFileProvider = layout.buildDirectory.file("generated/muAssets/Data/mu_asset_manifest.txt")
+
+android {
+    namespace "com.roxgaming.mu"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.roxgaming.mu"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+                abiFilters "arm64-v8a", "armeabi-v7a"
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file("src/main/cpp/CMakeLists.txt")
+            version "3.22.1"
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
+    sourceSets {
+        main {
+            assets.srcDirs = [
+                muGeneratedStaticAssetsDirProvider.get().asFile,
+                muGeneratedAssetsDirProvider.get().asFile,
+            ]
+        }
+    }
+}
+
+tasks.register("prepareMuStaticAssets") {
+    doLast {
+        def generatedStaticAssetsDir = muGeneratedStaticAssetsDirProvider.get().asFile
+        def sourceConfigIniFile = muClientConfigIniProvider.get()
+        def sourceRuntimeConfigIniFile = muClientRuntimeConfigIniProvider.get()
+        delete(generatedStaticAssetsDir)
+
+        generatedStaticAssetsDir.mkdirs()
+        project.sync {
+            from(file("src/main/assets"))
+            into(generatedStaticAssetsDir)
+            includeEmptyDirs = false
+            if (!muUseManualAssetsDataProvider.get()) {
+                exclude("Data/**")
+            }
+        }
+
+        if (!muHasManualConfigIni && sourceConfigIniFile.exists()) {
+            copy {
+                from(sourceConfigIniFile)
+                into(generatedStaticAssetsDir)
+                rename { "config.ini" }
+            }
+        }
+
+        if (!muHasManualRuntimeConfigIni && sourceRuntimeConfigIniFile.exists()) {
+            copy {
+                from(sourceRuntimeConfigIniFile)
+                into(generatedStaticAssetsDir)
+                rename { "client_runtime.ini" }
+            }
+        }
+    }
+}
+
+tasks.register("prepareMuClientDataAssets") {
+    doLast {
+        def generatedAssetsDir = muGeneratedAssetsDirProvider.get().asFile
+        def generatedDataDir = muGeneratedDataDirProvider.get().asFile
+        def generatedManifestFile = muGeneratedManifestFileProvider.get().asFile
+        def sourceDataDir = muClientDataDirProvider.get()
+        def autoSyncEnabled = muAutoSyncClientDataProvider.get()
+        def manifestSourceDir = null
+
+        delete(generatedAssetsDir)
+
+        if (muHasManualAssetsData) {
+            manifestSourceDir = muManualAssetsDataDir
+            generatedDataDir.mkdirs()
+            logger.lifecycle("MU Android assets sync skipped. Manual Data found in src/main/assets/Data; generating manifest only")
+        }
+        else if (!autoSyncEnabled || !sourceDataDir.exists()) {
+            logger.lifecycle("MU Android assets sync skipped. Source Data not found or disabled: ${sourceDataDir}")
+            return
+        }
+        else {
+            generatedDataDir.mkdirs()
+
+            project.sync {
+                from(sourceDataDir)
+                into(generatedDataDir)
+                includeEmptyDirs = false
+            }
+
+            manifestSourceDir = generatedDataDir
+            logger.lifecycle("MU Android assets prepared from ${sourceDataDir}")
+        }
+
+        def files = fileTree(manifestSourceDir) {
+            include("**/*")
+            exclude("mu_asset_manifest.txt")
+        }.files.findAll { it.isFile() }.sort { left, right -> left.absolutePath <=> right.absolutePath }
+
+        generatedManifestFile.parentFile.mkdirs()
+        generatedManifestFile.text = files.collect { assetFile ->
+            def relativePath = manifestSourceDir.toPath().relativize(assetFile.toPath()).toString().replace(File.separatorChar, '/' as char)
+            "${relativePath}|${assetFile.length()}|${assetFile.lastModified()}"
+        }.join("\n")
+
+        if (!generatedManifestFile.text.isEmpty()) {
+            generatedManifestFile << "\n"
+        }
+
+        logger.lifecycle("MU Android asset manifest ready (${files.size()} files)")
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn("prepareMuStaticAssets")
+    dependsOn("prepareMuClientDataAssets")
+}
+
+dependencies {
+}

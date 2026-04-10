@@ -1,0 +1,7 @@
+./Data
+Data/
+./android/app/src/main/assets/
+
+MainOld
+android/app/build/
+*.apk

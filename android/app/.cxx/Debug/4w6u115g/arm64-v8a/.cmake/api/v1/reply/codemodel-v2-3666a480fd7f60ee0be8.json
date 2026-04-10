@@ -1,0 +1,69 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.6.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "mu_android_bootstrap",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "android_native_app_glue::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-android_native_app_glue-Debug-0306e91571441a168495.json",
+					"name" : "android_native_app_glue",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mu_android_bootstrap::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mu_android_bootstrap-Debug-41af19029cdee75c6f6b.json",
+					"name" : "mu_android_bootstrap",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/arm64-v8a",
+		"source" : "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/src/main/cpp"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

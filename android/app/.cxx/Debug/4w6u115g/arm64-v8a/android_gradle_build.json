@@ -1,0 +1,46 @@
+{
+  "buildFiles": [
+    "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/bramante/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/bramante/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "android_native_app_glue::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "android_native_app_glue",
+      "output": "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/.cxx/Debug/4w6u115g/arm64-v8a/libandroid_native_app_glue.a"
+    },
+    "mu_android_bootstrap::@6890427a1f51a3e7e1df": {
+      "toolchain": "toolchain",
+      "abi": "arm64-v8a",
+      "artifactName": "mu_android_bootstrap",
+      "output": "/Users/bramante/Downloads/RoxGaming 5.2 - UPDATE FPS 60/Source/Main/android/app/build/intermediates/cxx/Debug/4w6u115g/obj/arm64-v8a/libmu_android_bootstrap.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "toolchain": {
+      "cCompilerExecutable": "/Users/bramante/Library/Android/sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang.lld",
+      "cppCompilerExecutable": "/Users/bramante/Library/Android/sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++.lld"
+    }
+  },
+  "cFileExtensions": [
+    "c"
+  ],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}
