@@ -19,6 +19,7 @@
 #include "ZzzLodTerrain.h"
 #include "GOBoid.h"
 #include "NewUISystem.h"
+#include "MapManager.h"
 
 extern char* g_lpszMp3[NUM_MUSIC];
 
@@ -371,50 +372,50 @@ CHARACTER* CGMKarutan1::CreateMonster(int iType, int PosX, int PosY, int Key)
 	case 569:
 		OpenMonsterModel(209);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+209, PosX, PosY);
-		strcpy(pCharacter->ID, "¸Íµ¶°í¸®Àü°¥");
+		strcpy(pCharacter->ID, "ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 		pCharacter->Object.Scale = 1.0f;
 		break;
 	case 570:
 		OpenMonsterModel(210);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+210, PosX, PosY);
-		strcpy(pCharacter->ID, "º»½ºÄÝÇÇ¿Â");
+		strcpy(pCharacter->ID, "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½");
 		pCharacter->Object.Scale = 0.58f;
 		break;
 	case 571:
 		OpenMonsterModel(211);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+211, PosX, PosY);
-		strcpy(pCharacter->ID, "¿À¸£Ä¿½º");
+		strcpy(pCharacter->ID, "ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½");
 		pCharacter->Object.Scale = 0.64f;
 		break;
 	case 572:
 		OpenMonsterModel(212);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+212, PosX, PosY);
-		strcpy(pCharacter->ID, "°ñ·Ï");
+		strcpy(pCharacter->ID, "ï¿½ï¿½ï¿½");
 		pCharacter->Object.Scale = 1.5f;
 		break;
 	case 573:
 		OpenMonsterModel(213);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+213, PosX, PosY);
-		strcpy(pCharacter->ID, "Å©¸³Å¸");
+		strcpy(pCharacter->ID, "Å©ï¿½ï¿½Å¸");
 		pCharacter->Object.Scale = 1.5f;
 		break;
 	case 574:
 		OpenMonsterModel(214);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+214, PosX, PosY);
-		strcpy(pCharacter->ID, "Å©¸³Æ÷½º");
+		strcpy(pCharacter->ID, "Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
 		pCharacter->Object.Scale = 1.25f;
 		break;
 	case 575:
 		OpenMonsterModel(215);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+215, PosX, PosY);
-		strcpy(pCharacter->ID, "ÄÜµå¶ó");
+		strcpy(pCharacter->ID, "ï¿½Üµï¿½ï¿½");
 		pCharacter->Object.Scale = 1.45f;
 		pCharacter->Object.LifeTime = 100;
 		break;
 	case 576:
 		OpenMonsterModel(216);
 		pCharacter = CreateCharacter(Key, MODEL_MONSTER01+216, PosX, PosY);
-		strcpy(pCharacter->ID, "³ª¸£ÄÜµå¶ó");
+		strcpy(pCharacter->ID, "ï¿½ï¿½ï¿½ï¿½ï¿½Üµï¿½ï¿½");
 		pCharacter->Object.Scale = 1.55f;
 		pCharacter->Object.LifeTime = 100;
 
@@ -880,12 +881,12 @@ bool CGMKarutan1::PlayMonsterSound(OBJECT* o)
 
 void CGMKarutan1::PlayBGM()
 {
-	if (World == WD_80KARUTAN1)
+	if (gMapManager.WorldActive == WD_80KARUTAN1)
 		PlayMp3(g_lpszMp3[MUSIC_KARUTAN1]);
 	else
 		StopMp3(g_lpszMp3[MUSIC_KARUTAN1]);
 
-	if (World == WD_81KARUTAN2)
+	if (gMapManager.WorldActive == WD_81KARUTAN2)
 		PlayMp3(g_lpszMp3[MUSIC_KARUTAN2]);
 	else
 		StopMp3(g_lpszMp3[MUSIC_KARUTAN2]);
@@ -893,7 +894,7 @@ void CGMKarutan1::PlayBGM()
 
 bool IsKarutanMap()
 {
-	return World == WD_80KARUTAN1 || World == WD_81KARUTAN2 ? true : false;
+	return gMapManager.WorldActive == WD_80KARUTAN1 || gMapManager.WorldActive == WD_81KARUTAN2 ? true : false;
 }
 
 #endif	// ASG_ADD_MAP_KARUTAN

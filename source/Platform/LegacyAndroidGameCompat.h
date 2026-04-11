@@ -2,9 +2,16 @@
 
 #if defined(__ANDROID__)
 
+#include <type_traits>
+
 extern CHARACTER* Hero;
 extern ITEM PickItem;
 extern WORD TerrainWall[];
+
+// Freestanding wrappers for CCharacterManager member functions
+// used unqualified in PBG_ADD_NEWCHAR_MONK code paths
+inline int GetBaseClass(int iClass) { return (0x7 & iClass); }
+inline bool IsThirdClass(int iClass) { return ((iClass >> 4) & 1) != 0; }
 
 #ifndef VK_LCONTROL
 #define VK_LCONTROL 0xA2
@@ -26,6 +33,28 @@ inline T legacy_android_max(T left, T right)
 	return (left > right) ? left : right;
 }
 
+// Overloads for mixed-type calls (e.g. max(int, size_t))
+template <typename T, typename U>
+inline typename std::common_type<T, U>::type legacy_android_min(T left, U right)
+{
+	typedef typename std::common_type<T, U>::type CT;
+	return (static_cast<CT>(left) < static_cast<CT>(right)) ? static_cast<CT>(left) : static_cast<CT>(right);
+}
+
+template <typename T, typename U>
+inline typename std::common_type<T, U>::type legacy_android_max(T left, U right)
+{
+	typedef typename std::common_type<T, U>::type CT;
+	return (static_cast<CT>(left) > static_cast<CT>(right)) ? static_cast<CT>(left) : static_cast<CT>(right);
+}
+
+#ifndef min
+#define min(a,b) legacy_android_min(a,b)
+#endif
+#ifndef max
+#define max(a,b) legacy_android_max(a,b)
+#endif
+
 inline int TERRAIN_INDEX(int x, int y)
 {
 	return y * TERRAIN_SIZE + x;
@@ -41,41 +70,7 @@ inline WORD TERRAIN_ATTRIBUTE(float x, float y)
 	return TerrainWall[TERRAIN_INDEX_REPEAT((int)(x / TERRAIN_SCALE), (int)(y / TERRAIN_SCALE))];
 }
 
-#define g_isNotCharacterBuff(o) \
-	(o)->m_BuffMap.isBuff()
-
-#define g_isCharacterBuff(o, bufftype) \
-	(o)->m_BuffMap.isBuff(bufftype)
-
-#define g_isCharacterBufflist(o, bufftypelist) \
-	(o)->m_BuffMap.isBuff(bufftypelist)
-
-#define g_TokenCharacterBuff(o, bufftype) \
-	(o)->m_BuffMap.TokenBuff(bufftype)
-
-#define g_CharacterBuffCount(o, bufftype) \
-	(o)->m_BuffMap.GetBuffCount(bufftype)
-
-#define g_CharacterBuffSize(o) \
-	(o)->m_BuffMap.GetBuffSize()
-
-#define g_CharacterBuff(o, iterindex) \
-	(o)->m_BuffMap.GetBuff(iterindex)
-
-#define g_CharacterRegisterBuff(o, bufftype) \
-	(o)->m_BuffMap.RegisterBuff(bufftype)
-
-#define g_CharacterRegisterBufflist(o, bufftypelist) \
-	(o)->m_BuffMap.RegisterBuff(bufftypelist)
-
-#define g_CharacterUnRegisterBuff(o, bufftype) \
-	(o)->m_BuffMap.UnRegisterBuff(bufftype)
-
-#define g_CharacterUnRegisterBuffList(o, bufftypelist) \
-	(o)->m_BuffMap.UnRegisterBuff(bufftypelist)
-
-#define g_CharacterCopyBuff(outObj, inObj) \
-	(outObj)->m_BuffMap.m_Buff = (inObj)->m_BuffMap.m_Buff
+// Buff macros now provided by _GlobalFunctions.h (included on Android too)
 
 #define g_CharacterClearBuff(o) \
 	(o)->m_BuffMap.ClearBuff()

@@ -5,6 +5,7 @@
 #include "NewUISiegeWarCommander.h"
 #include "UIControls.h"
 #include "zzzTexture.h"
+#include "ZzzCharacter.h"
 #include "wsclientinline.h"
 #include "Platform/RenderColorCompat.h"
 

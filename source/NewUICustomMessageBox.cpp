@@ -15,6 +15,8 @@
 #include "ZzzOpenData.h"
 #include "DuelMgr.h"
 #include "w_CursedTemple.h"
+#include "NewUISystem.h"
+#include "NewUIChatLogWindow.h"
 #include "Platform/RenderColorCompat.h"
 
 extern int DeleteIndex;
@@ -2019,7 +2021,7 @@ CALLBACK_RESULT SEASON3B::CGemIntegrationDisjointMsgBox::LButtonUp(class CNewUIM
 CALLBACK_RESULT SEASON3B::CGemIntegrationDisjointMsgBox::BlessingBtnDown(class CNewUIMessageBoxBase* pOwner, const leaf::xstreambuf& xParam)
 {
 	CGemIntegrationDisjointMsgBox* pMsgBox = dynamic_cast<CGemIntegrationDisjointMsgBox*>(pOwner);
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -2046,7 +2048,7 @@ CALLBACK_RESULT SEASON3B::CGemIntegrationDisjointMsgBox::BlessingBtnDown(class C
 CALLBACK_RESULT SEASON3B::CGemIntegrationDisjointMsgBox::SoulBtnDown(class CNewUIMessageBoxBase* pOwner, const leaf::xstreambuf& xParam)
 {
 	CGemIntegrationDisjointMsgBox* pMsgBox = dynamic_cast<CGemIntegrationDisjointMsgBox*>(pOwner);
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5008,7 +5010,7 @@ CALLBACK_RESULT SEASON3B::CPasswordKeyPadMsgBoxLayout::OkBtnDown(class CNewUIMes
 {
 	CNewUIKeyPadMsgBox* pMsgBox = dynamic_cast<CNewUIKeyPadMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5064,7 +5066,7 @@ CALLBACK_RESULT SEASON3B::CStorageLockKeyPadMsgBoxLayout::OkBtnDown(class CNewUI
 {
 	CNewUIKeyPadMsgBox* pMsgBox = dynamic_cast<CNewUIKeyPadMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5122,7 +5124,7 @@ CALLBACK_RESULT SEASON3B::CStorageLockCheckKeyPadMsgBoxLayout::OkBtnDown(class C
 {
 	CNewUIKeyPadMsgBox* pMsgBox = dynamic_cast<CNewUIKeyPadMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5208,7 +5210,7 @@ CALLBACK_RESULT SEASON3B::CStorageLockMsgBoxLayout::ProcessOk(class CNewUIMessag
 {
 	CNewUITextInputMsgBox* pMsgBox = dynamic_cast<CNewUITextInputMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5262,7 +5264,7 @@ CALLBACK_RESULT SEASON3B::CStorageLockFinalKeyPadMsgBoxLayout::OkBtnDown(class C
 {
 	CNewUIKeyPadMsgBox* pMsgBox = dynamic_cast<CNewUIKeyPadMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5317,7 +5319,7 @@ CALLBACK_RESULT SEASON3B::CStorageUnlockMsgBoxLayout::OkBtnDown(class CNewUIMess
 {
 	CNewUITextInputMsgBox* pMsgBox = dynamic_cast<CNewUITextInputMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -5373,7 +5375,7 @@ CALLBACK_RESULT SEASON3B::CStorageUnlockKeyPadMsgBoxLayout::OkBtnDown(class CNew
 {
 	CNewUIKeyPadMsgBox* pMsgBox = dynamic_cast<CNewUIKeyPadMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -7245,7 +7247,7 @@ CALLBACK_RESULT SEASON3B::CGuildBreakPasswordMsgBoxLayout::ProcessOk(class CNewU
 {
 	CNewUITextInputMsgBox* pMsgBox = dynamic_cast<CNewUITextInputMsgBox*>(pOwner);
 
-	if (pMsgBox == false)
+	if (pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}

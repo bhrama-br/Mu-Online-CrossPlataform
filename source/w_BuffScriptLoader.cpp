@@ -103,7 +103,7 @@ bool BuffScriptLoader::Load(const std::string& pchFileName)
 		if ( dwCheckSum != GenerateCheckSum2( Buffer, structsize*listsize, 0xE2F1))
 		{
 			char Text[256];
-    		sprintf( Text, "%s - File corrupted.", pchFileName );
+    		sprintf( Text, "%s - File corrupted.", pchFileName.c_str() );
 			g_ErrorReport.Write( Text );
 			MessageBox(g_hWnd,Text,NULL,MB_OK);
 			SendMessage(g_hWnd,WM_DESTROY,0,0);
@@ -141,7 +141,7 @@ bool BuffScriptLoader::Load(const std::string& pchFileName)
 	else
 	{
 		char Text[256];
-    	sprintf( Text, "%s - File not exist.", pchFileName );
+    	sprintf( Text, "%s - File not exist.", pchFileName.c_str() );
 		g_ErrorReport.Write( Text );
 		MessageBox(g_hWnd,Text,NULL,MB_OK);
 		SendMessage(g_hWnd,WM_DESTROY,0,0);

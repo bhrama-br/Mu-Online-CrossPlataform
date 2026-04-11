@@ -10,6 +10,8 @@
 #include <windows.h>
 #endif
 
+extern HWND g_hWnd;
+
 namespace SEASON3B
 {
 	class INewUIBase

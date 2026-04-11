@@ -9,6 +9,8 @@
 #include "_enum.h"
 #if !defined(__ANDROID__)
 #include <eh.h>
+#else
+#include <android/log.h>
 #endif
 #include "UIManager.h"
 #include "GuildCache.h"
@@ -83,9 +85,11 @@
 #include "CAIController.h"
 #endif
 
+#if !defined(__ANDROID__)
 CHARACTER *CharactersClient;
 CHARACTER CharacterView;
 CHARACTER *Hero;
+#endif
 Script_Skill MonsterSkill[MODEL_MONSTER_END];
 extern CKanturuDirection KanturuDirection;
 float g_fBoneSave[10][3][4];
@@ -8357,6 +8361,19 @@ void RenderCharacter(CHARACTER *c,OBJECT *o,int Select) //CreateCape
 	}
 
 	BMD *b = &Models[o->Type];
+#ifdef __ANDROID__
+	{
+		static int diag_count = 0;
+		if (diag_count < 10)
+		{
+			++diag_count;
+			__android_log_print(ANDROID_LOG_INFO, "mu_char_render",
+				"RenderCharacter: Type=%d NumActions=%d NumBones=%d NumMeshs=%d Alpha=%.2f Class=%d",
+				o->Type, Models[o->Type].NumActions, Models[o->Type].NumBones,
+				Models[o->Type].NumMeshs, o->Alpha, c->Class);
+		}
+	}
+#endif
 	if ( Models[o->Type].NumActions==0 ) return;
 
 	bool Translate = true;
@@ -8457,6 +8474,21 @@ void RenderCharacter(CHARACTER *c,OBJECT *o,int Select) //CreateCape
 
     if ( byRender==CHARACTER_ANIMATION )
         Calc_ObjectAnimation ( o, Translate, Select );
+#ifdef __ANDROID__
+	{
+		static int diag2 = 0;
+		if (diag2 < 5)
+		{
+			++diag2;
+			__android_log_print(ANDROID_LOG_INFO, "mu_char_render",
+				"PostCalc: byRender=%d Alpha=%.2f BodyParts: H=%d A=%d P=%d G=%d B=%d",
+				byRender, o->Alpha,
+				c->BodyPart[BODYPART_HELM].Type, c->BodyPart[BODYPART_ARMOR].Type,
+				c->BodyPart[BODYPART_PANTS].Type, c->BodyPart[BODYPART_GLOVES].Type,
+				c->BodyPart[BODYPART_BOOTS].Type);
+		}
+	}
+#endif
 
     if ( o->Alpha>=0.5f && c->HideShadow==false )
     {

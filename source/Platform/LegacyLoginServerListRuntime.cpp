@@ -52,7 +52,9 @@ namespace
 	}
 }
 
+#if !defined(MU_ANDROID_HAS_ZZZINFORMATION_RUNTIME)
 CGlobalText GlobalText;
+#endif
 
 namespace platform
 {

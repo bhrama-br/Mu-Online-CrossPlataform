@@ -2,6 +2,43 @@
 #include "LuaReg.h"
 #include "LuaStack.hpp"
 
+#if defined(__ANDROID__)
+
+// Android stub: no Windows registry
+using namespace luaaa;
+
+int getValueRegKey(char* keyValue) {
+	(void)keyValue;
+	return -1;
+}
+
+void setValueRegKey(char* keyValue, int value) {
+	(void)keyValue;
+	(void)value;
+}
+
+char* getStringRegKey(char* keyValue, int keySize) {
+	(void)keyValue;
+	(void)keySize;
+	static char empty[1] = {0};
+	return empty;
+}
+
+void setStringRegKey(char* keyValue, char* value) {
+	(void)keyValue;
+	(void)value;
+}
+
+void RegisterLuaReg(lua_State* lua)
+{
+	LuaModule(lua).fun("getValueRegKey", &getValueRegKey);
+	LuaModule(lua).fun("setValueRegKey", &setValueRegKey);
+	LuaModule(lua).fun("getStringRegKey", &getStringRegKey);
+	LuaModule(lua).fun("setStringRegKey", &setStringRegKey);
+}
+
+#else
+
 #pragma comment (lib, "Advapi32.lib")
 
 using namespace luaaa;
@@ -73,3 +110,5 @@ void RegisterLuaReg(lua_State * lua)
 	LuaModule(lua).fun("getStringRegKey", &getStringRegKey);
 	LuaModule(lua).fun("setStringRegKey", &setStringRegKey);
 }
+
+#endif // !__ANDROID__

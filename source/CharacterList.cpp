@@ -19,19 +19,19 @@ CCharacterList::~CCharacterList()
 
 }
 
-int CheckCreateCharacterWindow() 
+int CheckCreateCharacterWindow()
 {
 	CUIMng& rUIMng = CUIMng::Instance();
 
 	return rUIMng.m_CharMakeWin.IsShow();
 }
 
-void SetMaxCharacter(int value) 
+void SetMaxCharacter(int value)
 {
 	gCharacterList.MaxCharacters = value;
 }
 
-void SetPetSize(float MountSize, float FlyingSize, float FlyingHeight) 
+void SetPetSize(float MountSize, float FlyingSize, float FlyingHeight)
 {
 	gCharacterList.MountAddSize = MountSize;
 	gCharacterList.FlyingAddSize = FlyingSize;
@@ -40,7 +40,7 @@ void SetPetSize(float MountSize, float FlyingSize, float FlyingHeight)
 
 void CCharacterList::Init()
 {
-	if (gProtect->m_MainInfo.CharListS13 == 1) 
+	if (gProtect->m_MainInfo.CharListS13 == 1)
 	{
 		LuaModule(this->m_Lua.GetState()).fun("SetPetSize", &SetPetSize);
 

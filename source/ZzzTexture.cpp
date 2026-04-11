@@ -7,9 +7,16 @@
 #include "./Utilities/Log/ErrorReport.h"
 #include "WSclient.h"
 #include "DSPlaySound.h"
+#if defined(__ANDROID__)
+#include "../Dependencies/jpeg-9e-src/jpeglib.h"
+#else
 #include "../Dependencies/include/Jpeglib.h"
+#endif
 #include "ProtocolSend.h"
 #include "Platform/GameAssetPath.h"
+#if defined(__ANDROID__)
+#include <android/log.h>
+#endif
 
 CGlobalBitmap Bitmaps;
 
@@ -262,6 +269,12 @@ void DeleteBitmap(GLuint uiTextureIndex, bool bForce)
 }
 void PopUpErrorCheckMsgBox(const char* szErrorMsg, bool bForceDestroy)
 {
+#if defined(__ANDROID__)
+	// On Android, missing textures are non-fatal — just log and return.
+	__android_log_print(ANDROID_LOG_WARN, "MUAndroidTexture",
+		"PopUpErrorCheckMsgBox (non-fatal): %s", szErrorMsg);
+	return;
+#else
 	char szMsg[1024] = {0, };
 	strcpy(szMsg, szErrorMsg);
 
@@ -288,4 +301,5 @@ void PopUpErrorCheckMsgBox(const char* szErrorMsg, bool bForceDestroy)
 	DestroyWindow();
 	CloseMainExe();
 	ExitProcess(0);
+#endif
 }

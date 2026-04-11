@@ -4,6 +4,7 @@
 #include "LoadData.h"
 #include "ZzzOpenData.h"
 #include "ZzzCharacter.h"
+#include "MapManager.h"
 
 using namespace luaaa;
 
@@ -56,11 +57,11 @@ CHARACTER* Monsters::CreateMonster(int Type, int PositionX, int PositionY, int K
 	CHARACTER* c = NULL;
 	int returnValue = 0;
 
-	DWORD ObjectClass = 0;
+	DWORD_PTR ObjectClass = 0;
 
 	gMonsters.m_Lua.Generic_Call("CreateMonster", "iiii>ij", Type, PositionX, PositionY, Key, &returnValue, &ObjectClass);
 
-	if (returnValue == 1) 
+	if (returnValue == 1)
 	{
 		return (CHARACTER*)ObjectClass;
 	}
@@ -124,7 +125,7 @@ DWORD CreateMonsterStruct(int Key, int MonsterID, int PosX, int PosY, int Monste
 
 		Object->TargetCharacter = HeroIndex;
 
-		return (DWORD)(Object);
+		return (DWORD)(uintptr_t)(Object);
 	}
 
 	return 0;

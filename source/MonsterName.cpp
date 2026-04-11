@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "MonsterName.h"
 #include "LuaStack.hpp"
+#include "MapManager.h"
 
 using namespace luaaa;
 

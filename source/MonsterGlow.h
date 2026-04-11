@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lua.h"
+#include "ZzzBMD.h"
 
 struct CUSTOM_MONSTER_GLOW_INFO 
 {

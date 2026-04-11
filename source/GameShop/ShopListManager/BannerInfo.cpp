@@ -14,9 +14,10 @@
 #include "StringToken.h"
 #include "StringMethod.h"
 
+#if !defined(__ANDROID__)
 #include <UrlMon.h>
-
 #pragma comment(lib,"Urlmon.lib")
+#endif
 
 CBannerInfo::CBannerInfo() // OK
 {

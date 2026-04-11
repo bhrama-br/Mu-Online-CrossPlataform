@@ -95,6 +95,7 @@ namespace
 }
 
 
+#if !defined(__ANDROID__)
 inline int TERRAIN_INDEX(int x,int y)
 {
 	return (y)*TERRAIN_SIZE+(x);
@@ -111,6 +112,7 @@ inline WORD TERRAIN_ATTRIBUTE(float x,float y)
     int yf = (int)(y/TERRAIN_SCALE);
     return TerrainWall[(yf)*TERRAIN_SIZE+(xf)];
 }
+#endif
 
 void InitTerrainMappingLayer()
 {

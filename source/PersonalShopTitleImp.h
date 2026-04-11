@@ -30,13 +30,13 @@ class CPersonalShopTitleImp
 		CShopTitleDrawObj();
 		~CShopTitleDrawObj();
 
-		bool Create(int key, const std::string& name, const std::string& title, POINT& pos);
+		bool Create(int key, const std::string& name, const std::string& title, POINT pos);
 		void Release();
 
 		int	GetKey() const;
 
 		void SetBoxContent(const std::string& name, const std::string& title);
-		void SetBoxPos(POINT& pos);
+		void SetBoxPos(POINT pos);
 		void GetFullTitle(std::string& title);
 
 		void GetBoxSize(SIZE& size);

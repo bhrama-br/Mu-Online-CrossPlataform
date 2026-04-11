@@ -5,6 +5,7 @@
 #include "Platform/RenderColorCompat.h"
 #ifdef KJH_ADD_INGAMESHOP_UI_SYSTEM
 #include "MsgBoxIGSStorageItemInfo.h"
+#include "NewUISystem.h"
 #include "wsclientinline.h"
 #include "DSPlaySound.h"
 #include "MsgBoxIGSUseItemConfirm.h"
@@ -227,7 +228,7 @@ void CMsgBoxIGSStorageItemInfo::UnloadImages()
 bool CMsgBoxIGSStorageItemInfoLayout::SetLayout()
 {
 	CMsgBoxIGSStorageItemInfo* pMsgBox = GetMsgBox();
-	if(false == pMsgBox)
+	if(NULL == pMsgBox)
 		return false;
 	
 	if(false == pMsgBox->Create())

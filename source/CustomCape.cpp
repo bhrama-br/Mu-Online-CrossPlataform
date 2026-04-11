@@ -30,7 +30,7 @@ void CCustomCape::RenderModel(BMD* b, OBJECT* o, DWORD ItemIndex)
 		renderCharacter = 0;
 	}
 
-	gCustomCape.m_Lua.Generic_Call("RenderCapeModel", "iiii>", (DWORD)b, (DWORD)o, ItemIndex, renderCharacter);
+	gCustomCape.m_Lua.Generic_Call("RenderCapeModel", "iiii>", (DWORD)(DWORD_PTR)b, (DWORD)(DWORD_PTR)o, ItemIndex, renderCharacter);
 }
 
 void CCustomCape::CapeModelPosition(DWORD ItemIndex, float& posX, float& posY, float& posZ, float& matrixX, float& matrixY, float& matrixZ)
@@ -71,5 +71,5 @@ void CCustomCape::LoadImageCape()
 
 void CCustomCape::CreateCape(CPhysicsCloth* pCloth, CHARACTER* character, WORD ItemIndex, BYTE Class)
 {
-	this->m_Lua.Generic_Call("CreateCapePlayer", "iiii>", (DWORD)pCloth, (DWORD)&character->Object, ItemIndex, Class);
+	this->m_Lua.Generic_Call("CreateCapePlayer", "iiii>", (DWORD)(DWORD_PTR)pCloth, (DWORD)(DWORD_PTR)&character->Object, ItemIndex, Class);
 }

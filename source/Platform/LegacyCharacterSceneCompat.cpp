@@ -1,9 +1,13 @@
 #include "stdafx.h"
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined(MU_ANDROID_HAS_ZZZSCENE_RUNTIME)
 
 #include "CharacterManager.h"
 #include "DarkSpirit.h"
+#include "GMEmpireGuardian1.h"
+#include "GMEmpireGuardian2.h"
+#include "GMEmpireGuardian3.h"
+#include "GMEmpireGuardian4.h"
 #include "GMNewTown.h"
 #include "GMSwampOfQuiet.h"
 #include "PhysicsManager.h"
@@ -427,6 +431,21 @@ MapProcess::~MapProcess()
 
 void MapProcess::Init()
 {
+	auto eg1 = GMEmpireGuardian1::Make();
+	eg1->AddMapIndex(WD_69EMPIREGUARDIAN1);
+	m_MapList.push_back(eg1);
+
+	auto eg2 = GMEmpireGuardian2::Make();
+	eg2->AddMapIndex(WD_70EMPIREGUARDIAN2);
+	m_MapList.push_back(eg2);
+
+	auto eg3 = GMEmpireGuardian3::Make();
+	eg3->AddMapIndex(WD_71EMPIREGUARDIAN3);
+	m_MapList.push_back(eg3);
+
+	auto eg4 = GMEmpireGuardian4::Make();
+	eg4->AddMapIndex(WD_72EMPIREGUARDIAN4);
+	m_MapList.push_back(eg4);
 }
 
 void MapProcess::Destroy()
@@ -448,25 +467,35 @@ bool MapProcess::AttackEffectMonster(CHARACTER* c, OBJECT* o, BMD* b) { (void)c;
 bool MapProcess::SetCurrentActionMonster(CHARACTER* c, OBJECT* o) { (void)c; (void)o; return false; }
 bool MapProcess::PlayMonsterSound(OBJECT* o) { (void)o; return false; }
 bool MapProcess::ReceiveMapMessage(BYTE code, BYTE subcode, BYTE* ReceiveBuffer) { (void)code; (void)subcode; (void)ReceiveBuffer; return false; }
-void MapProcess::Register(BoostSmart_Ptr(BaseMap) pMap) { (void)pMap; }
+void MapProcess::Register(BoostSmart_Ptr(BaseMap) pMap) { if (pMap) m_MapList.push_back(pMap); }
 void MapProcess::UnRegister(ENUM_WORLD type) { (void)type; }
 BaseMap& MapProcess::GetMap(int type)
 {
-	static BaseMap g_default_map;
-	(void)type;
-	return g_default_map;
+	return FindBaseMap(static_cast<ENUM_WORLD>(type));
 }
 
 bool MapProcess::FindMap(ENUM_WORLD type)
 {
-	(void)type;
+	for (auto iter = m_MapList.begin(); iter != m_MapList.end(); ++iter)
+	{
+		if (*iter && (*iter)->IsCurrentMap(type))
+		{
+			return true;
+		}
+	}
 	return false;
 }
 
 BaseMap& MapProcess::FindBaseMap(ENUM_WORLD type)
 {
+	for (auto iter = m_MapList.begin(); iter != m_MapList.end(); ++iter)
+	{
+		if (*iter && (*iter)->IsCurrentMap(type))
+		{
+			return **iter;
+		}
+	}
 	static BaseMap g_default_map;
-	(void)type;
 	return g_default_map;
 }
 

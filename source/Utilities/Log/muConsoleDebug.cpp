@@ -7,7 +7,9 @@
 #include <iostream>
 #include "ZzzInterface.h"
 #include "ZzzOpenglUtil.h"
+#if !defined(__ANDROID__)
 #include "WindowsConsole.h"
+#endif
 #include "./Utilities/Log/ErrorReport.h"
 #include "GlobalBitmap.h"
 #include "ZzzTexture.h"

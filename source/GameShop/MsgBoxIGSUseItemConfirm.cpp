@@ -298,7 +298,7 @@ void CMsgBoxIGSUseItemConfirm::UnloadImages()
 bool CMsgBoxIGSUseItemConfirmLayout::SetLayout()
 {
 	CMsgBoxIGSUseItemConfirm* pMsgBox = GetMsgBox();
-	if(false == pMsgBox)
+	if(NULL == pMsgBox)
 		return false;
 	
 	if(false == pMsgBox->Create())

@@ -11,6 +11,7 @@
 #include "CDirection.h"
 #include "wsclientinline.h"
 #include "MapManager.h"
+#include "NewUISystem.h"
 
 static CDirection Direction;
 

@@ -12,6 +12,7 @@
 #include "DSPlaySound.h"
 #include "wsclientinline.h"
 #include "NewUICommonMessageBox.h"
+#include "NewUISystem.h"
 #include "Local.h"
 #include "Platform/RenderColorCompat.h"
 

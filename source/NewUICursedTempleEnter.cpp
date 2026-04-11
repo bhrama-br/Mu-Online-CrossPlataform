@@ -6,6 +6,8 @@
 
 #include "NewUICursedTempleEnter.h"
 #include "NewUICommonMessageBox.h"
+#include "NewUISystem.h"
+#include "NewUIChatLogWindow.h"
 #include "UIBaseDef.h"
 #include "DSPlaySound.h"
 #include "ZzzBMD.h"

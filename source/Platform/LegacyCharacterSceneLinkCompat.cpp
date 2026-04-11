@@ -1,7 +1,8 @@
 #include "stdafx.h"
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined(MU_ANDROID_HAS_ZZZSCENE_RUNTIME)
 
+#include <android/log.h>
 #include "ChangeRingManager.h"
 #include "CKANTURUDirection.h"
 #include "CSParts.h"
@@ -1506,11 +1507,13 @@ void AddWaterWave(int x, int y, int Range, int Height)
 	(void)Height;
 }
 
+#if !defined(MU_ANDROID_HAS_DSPLAYSOUND_RUNTIME)
 void StopBuffer(int Buffer, BOOL bResetPosition)
 {
 	(void)Buffer;
 	(void)bResetPosition;
 }
+#endif
 
 bool MoveHellasMonsterVisual(OBJECT* o, BMD* b)
 {
@@ -1745,67 +1748,184 @@ void ItemObjectAttribute(OBJECT* o)
 	(void)o;
 }
 
-void RenderPartObjectEffect(OBJECT* o, int Type, vec3_t Light, float Alpha, int Level, int Option1, int ExtOption, int Select, int RenderType)
+void BodyLight(OBJECT* o, BMD* b)
 {
-	(void)o;
-	(void)Type;
-	(void)Light;
-	(void)Alpha;
-	(void)Level;
-	(void)Option1;
-	(void)ExtOption;
-	(void)Select;
-	(void)RenderType;
+	b->LightEnable = o->LightEnable;
+	vec3_t Light;
+	RequestTerrainLight(o->Position[0], o->Position[1], Light);
+	if (o->LightEnable)
+	{
+		VectorAdd(Light, o->Light, b->BodyLight);
+	}
+	else
+	{
+		VectorScale(Light, 0.1f, Light);
+		VectorAdd(Light, o->Light, b->BodyLight);
+	}
 }
 
-void RenderPartObject(OBJECT* o, int Type, void* p, vec3_t Light, float Alpha, int Level, int Option1, int ExtOption, bool GlobalTransform, bool HideSkin, bool Translate, int Select, int RenderType)
+void RenderPartObjectBody(BMD* b, OBJECT* o, int Type, float Alpha, int RenderType)
 {
-	(void)o;
 	(void)Type;
-	(void)p;
-	(void)Light;
-	(void)Alpha;
+	(void)RenderType;
+	{
+		static int diag = 0;
+		if (diag < 10)
+		{
+			++diag;
+			__android_log_print(ANDROID_LOG_INFO, "mu_char_render",
+				"RenderPartObjectBody: Type=%d NumMeshs=%d Alpha=%.2f BlendMesh=%d HiddenMesh=%d",
+				Type, b->NumMeshs, o->Alpha, o->BlendMesh, o->HiddenMesh);
+		}
+	}
+	b->RenderBody(RENDER_TEXTURE, o->Alpha, o->BlendMesh, o->BlendMeshLight,
+		o->BlendMeshTexCoordU, o->BlendMeshTexCoordV, o->HiddenMesh);
+}
+
+void RenderPartObjectEffect(OBJECT* o, int Type, vec3_t Light, float Alpha, int Level, int Option1, int ExtOption, int Select, int RenderType)
+{
 	(void)Level;
 	(void)Option1;
 	(void)ExtOption;
-	(void)GlobalTransform;
-	(void)HideSkin;
-	(void)Translate;
 	(void)Select;
-	(void)RenderType;
+
+	BMD* b = &Models[Type];
+
+	if (o->EnableShadow)
+	{
+		return;
+	}
+
+	VectorCopy(Light, b->BodyLight);
+	RenderPartObjectBody(b, o, Type, Alpha, RenderType);
+}
+
+void RenderPartObject(OBJECT* o, int Type, void* p2, vec3_t Light, float Alpha, int Level, int Option1, int ExtOption, bool GlobalTransform, bool HideSkin, bool Translate, int Select, int RenderType)
+{
+	(void)p2;
+	(void)Select;
+
+	if (Alpha <= 0.01f)
+	{
+		return;
+	}
+
+	BMD* b = &Models[Type];
+	{
+		static int diag = 0;
+		if (diag < 20)
+		{
+			++diag;
+			__android_log_print(ANDROID_LOG_INFO, "mu_char_render",
+				"RenderPartObject: Type=%d NumActions=%d NumMeshs=%d NumBones=%d Alpha=%.2f GlobalTrans=%d Scale=%.2f",
+				Type, b->NumActions, b->NumMeshs, b->NumBones, Alpha, GlobalTransform, o->Scale);
+		}
+	}
+	b->HideSkin = HideSkin;
+	b->BodyScale = o->Scale;
+	b->ContrastEnable = o->ContrastEnable;
+	b->LightEnable = o->LightEnable;
+	VectorCopy(o->Position, b->BodyOrigin);
+
+	BodyLight(o, b);
+
+	if (GlobalTransform)
+	{
+		b->Transform(BoneTransform, o->BoundingBoxMin, o->BoundingBoxMax, &o->OBB, Translate);
+	}
+	else
+	{
+		b->Transform(o->BoneTransform, o->BoundingBoxMin, o->BoundingBoxMax, &o->OBB, Translate);
+	}
+
+	RenderPartObjectEffect(o, Type, Light, Alpha, Level, Option1, ExtOption, Select, RenderType);
 }
 
 bool Calc_RenderObject(OBJECT* o, bool Translate, int Select, int ExtraMon)
 {
-	(void)o;
-	(void)Translate;
-	(void)Select;
 	(void)ExtraMon;
+
+	if (o->Alpha < 0.01f)
+	{
+		return false;
+	}
+
+	BMD* b = &Models[o->Type];
+	b->BodyHeight = 0.f;
+	b->ContrastEnable = o->ContrastEnable;
+	BodyLight(o, b);
+	b->BodyScale = o->Scale;
+	b->CurrentAction = o->CurrentAction;
+	VectorCopy(o->Position, b->BodyOrigin);
+
+	if (o->EnableBoneMatrix)
+	{
+		b->Animation(o->BoneTransform, o->AnimationFrame, o->PriorAnimationFrame, o->PriorAction, o->Angle, o->HeadAngle, false, !Translate);
+	}
+	else
+	{
+		b->Animation(BoneTransform, o->AnimationFrame, o->PriorAnimationFrame, o->PriorAction, o->Angle, o->HeadAngle, false, !Translate);
+	}
+
+	b->Transform(o->BoneTransform, o->BoundingBoxMin, o->BoundingBoxMax, &o->OBB, Translate);
 	return true;
 }
 
 bool Calc_ObjectAnimation(OBJECT* o, bool Translate, int Select)
 {
-	(void)o;
-	(void)Translate;
 	(void)Select;
+
+	if (o->Alpha < 0.01f)
+	{
+		return false;
+	}
+
+	BMD* b = &Models[o->Type];
+	{
+		static int diag = 0;
+		if (diag < 5)
+		{
+			++diag;
+			__android_log_print(ANDROID_LOG_INFO, "mu_char_render",
+				"Calc_ObjectAnimation: Type=%d NumActions=%d CurrentAction=%d AnimFrame=%.2f Scale=%.2f EnableBone=%d Pos=(%.1f,%.1f,%.1f)",
+				o->Type, b->NumActions, o->CurrentAction, o->AnimationFrame, o->Scale,
+				o->EnableBoneMatrix, o->Position[0], o->Position[1], o->Position[2]);
+		}
+	}
+	b->BodyHeight = 0.f;
+	b->ContrastEnable = o->ContrastEnable;
+	BodyLight(o, b);
+	b->BodyScale = o->Scale;
+	b->CurrentAction = o->CurrentAction;
+	VectorCopy(o->Position, b->BodyOrigin);
+
+	if (o->EnableBoneMatrix)
+	{
+		b->Animation(o->BoneTransform, o->AnimationFrame, o->PriorAnimationFrame, o->PriorAction, o->Angle, o->HeadAngle, false, !Translate);
+	}
+	else
+	{
+		b->Animation(BoneTransform, o->AnimationFrame, o->PriorAnimationFrame, o->PriorAction, o->Angle, o->HeadAngle, false, !Translate);
+	}
 	return true;
 }
 
 void Draw_RenderObject(OBJECT* o, bool Translate, int Select, int ExtraMon)
 {
-	(void)o;
-	(void)Translate;
-	(void)Select;
 	(void)ExtraMon;
+
+	BMD* b = &Models[o->Type];
+	b->RenderBody(RENDER_TEXTURE, o->Alpha, o->BlendMesh, o->BlendMeshLight,
+		o->BlendMeshTexCoordU, o->BlendMeshTexCoordV, o->HiddenMesh);
 }
 
 void RenderObject(OBJECT* o, bool Translate, int Select, int ExtraMon)
 {
-	(void)o;
-	(void)Translate;
-	(void)Select;
-	(void)ExtraMon;
+	if (!Calc_RenderObject(o, Translate, Select, ExtraMon))
+	{
+		return;
+	}
+	Draw_RenderObject(o, Translate, Select, ExtraMon);
 }
 
 void RenderObject_AfterImage(OBJECT* o, bool Translate, int Select, int ExtraMon)
@@ -2592,6 +2712,7 @@ bool Monsters::MonsterType(int MonsterIndex, int Type)
 	return false;
 }
 
+#if !defined(MU_ANDROID_HAS_DSPLAYSOUND_RUNTIME)
 HRESULT ReleaseBuffer(int Buffer)
 {
 	(void)Buffer;
@@ -2605,28 +2726,25 @@ void LoadWaveFile(int Buffer, TCHAR* strFileName, int BufferChannel, bool Enable
 	(void)BufferChannel;
 	(void)Enable3DSound;
 }
+#endif
 
 void RenderPartObjectBodyColor(BMD* b, OBJECT* o, int Type, float Alpha, int RenderType, float Bright, int Texture, int iMonsterIndex)
 {
-	(void)b;
-	(void)o;
 	(void)Type;
-	(void)Alpha;
-	(void)RenderType;
 	(void)Bright;
 	(void)Texture;
 	(void)iMonsterIndex;
+	b->RenderBody(RenderType, Alpha, o->BlendMesh, o->BlendMeshLight,
+		o->BlendMeshTexCoordU, o->BlendMeshTexCoordV, o->HiddenMesh);
 }
 
 void RenderPartObjectBodyColor2(BMD* b, OBJECT* o, int Type, float Alpha, int RenderType, float Bright, int Texture)
 {
-	(void)b;
-	(void)o;
 	(void)Type;
-	(void)Alpha;
-	(void)RenderType;
 	(void)Bright;
 	(void)Texture;
+	b->RenderBody(RenderType, Alpha, o->BlendMesh, o->BlendMeshLight,
+		o->BlendMeshTexCoordU, o->BlendMeshTexCoordV, o->HiddenMesh);
 }
 
 CDuelMgr::CDuelMgr()
@@ -3504,6 +3622,15 @@ void CSimpleModulus::Init(void)
 }
 
 int CSimpleModulus::Encrypt(void* lpTarget, void* lpSource, int iSize)
+{
+	if (lpTarget != NULL && lpSource != NULL && iSize > 0)
+	{
+		memcpy(lpTarget, lpSource, static_cast<size_t>(iSize));
+	}
+	return iSize;
+}
+
+int CSimpleModulus::Decrypt(void* lpTarget, void* lpSource, int iSize)
 {
 	if (lpTarget != NULL && lpSource != NULL && iSize > 0)
 	{

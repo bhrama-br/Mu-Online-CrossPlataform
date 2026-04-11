@@ -18,9 +18,6 @@
 #include "wsclientinline.h"
 #include "Local.h"
 #include "CharacterManager.h"
-#if defined(__ANDROID__)
-#include "Platform/LegacyCharacterUiRuntime.h"
-#endif
 
 #define	CMW_OK		0
 #define	CMW_CANCEL	1
@@ -28,7 +25,7 @@
 extern float g_fScreenRate_x;
 extern float g_fScreenRate_y;
 extern int g_iChatInputType;
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined(MU_ANDROID_HAS_ZZZSCENE_RUNTIME)
 CUITextInputBox* g_pSingleTextInputBox = NULL;
 CHARACTER_ENABLE g_CharCardEnable = {};
 int InputTextWidth = 73;
@@ -238,13 +235,11 @@ void CCharMakeWin::UpdateDisplay()
 	}
 
 #ifdef PBG_ADD_CHARACTERCARD
-#if !defined(__ANDROID__)
 	for(i=0; i<CLASS_CHARACTERCARD_TOTALCNT; ++i)
 	{
 		if(!g_CharCardEnable.bCharacterEnable[i])
 			m_abtnJob[i+CLASS_DARK].SetEnable(false);
 	}
-#endif
 #else //PBG_ADD_CHARACTERCARD
 	m_abtnJob[CLASS_SUMMONER].SetEnable(true);
 #endif //PBG_ADD_CHARACTERCARD
@@ -289,40 +284,22 @@ void CCharMakeWin::UpdateWhileActive(double dDeltaTick)
 	{
 		if(m_aBtn[CMW_OK].IsClick())
 		{
-#if defined(__ANDROID__)
-			platform::SetLegacyCharacterUiStatusMessage("Criacao de personagem ainda nao integrada");
-			platform::SetLegacyCharacterUiCreateWindowVisible(false);
-#else
 			RequestCreateCharacter();
-#endif
 		}
 		else if(m_aBtn[CMW_CANCEL].IsClick())
 		{
-#if defined(__ANDROID__)
-			platform::SetLegacyCharacterUiCreateWindowVisible(false);
-#else
 			CUIMng::Instance().HideWin(this);
-#endif
 		}
 		else if (CInput::Instance().IsKeyDown(VK_RETURN))
 		{
 			::PlayBuffer(SOUND_CLICK01);
-#if defined(__ANDROID__)
-			platform::SetLegacyCharacterUiStatusMessage("Criacao de personagem ainda nao integrada");
-			platform::SetLegacyCharacterUiCreateWindowVisible(false);
-#else
 			RequestCreateCharacter();
-#endif
 		}
 		else if (CInput::Instance().IsKeyDown(VK_ESCAPE))
 		{
 			::PlayBuffer(SOUND_CLICK01);
-#if defined(__ANDROID__)
-			platform::SetLegacyCharacterUiCreateWindowVisible(false);
-#else
 			CUIMng::Instance().HideWin(this);
 			CUIMng::Instance().SetSysMenuWinShow(false);
-#endif
 		}
 	}
 	UpdateCreateCharacter();
@@ -330,10 +307,6 @@ void CCharMakeWin::UpdateWhileActive(double dDeltaTick)
 
 void CCharMakeWin::RequestCreateCharacter()
 {
-#if defined(__ANDROID__)
-	platform::SetLegacyCharacterUiStatusMessage("Criacao de personagem ainda nao integrada");
-	platform::SetLegacyCharacterUiCreateWindowVisible(false);
-#else
 	if (g_iChatInputType == 1)
 		g_pSingleTextInputBox->GetText(InputText[0]);
 
@@ -351,7 +324,6 @@ void CCharMakeWin::RequestCreateCharacter()
 		rUIMng.HideWin(this);
 		rUIMng.PopUpMsgWin(MESSAGE_WAIT);
 	}
-#endif
 }
 
 void CCharMakeWin::RenderControls()
@@ -428,31 +400,20 @@ void CCharMakeWin::RenderControls()
 
 void CCharMakeWin::SelectCreateCharacter()
 {
-#if defined(__ANDROID__)
-	return;
-#else
 	CharacterView.Class = m_nSelJob;
 	CreateCharacterPointer(&CharacterView,MODEL_FACE+CharacterView.Class,0,0);
 	CharacterView.Object.Kind = 0;
 	SetAction(&CharacterView.Object,1);
-#endif
 }
 
 void CCharMakeWin::UpdateCreateCharacter()
 {
-#if defined(__ANDROID__)
-	return;
-#else
 	if (!CharacterAnimation(&CharacterView, &CharacterView.Object))
 		SetAction(&CharacterView.Object,0);
-#endif
 }
 
 void CCharMakeWin::RenderCreateCharacter()
 {
-#if defined(__ANDROID__)
-	return;
-#else
 	OBJECT *o = &CharacterView.Object;
 	vec3_t Position, Angle;
 
@@ -512,7 +473,6 @@ void CCharMakeWin::RenderCreateCharacter()
 	glViewport2(0,0,WindowWidth,WindowHeight);
 
 	EndOpengl();
-#endif
 }
 
 const CButton* CCharMakeWin::GetJobButton(int nIndex) const

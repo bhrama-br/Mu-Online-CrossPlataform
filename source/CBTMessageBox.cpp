@@ -1,6 +1,14 @@
 #include "stdafx.h"
 #include "CBTMessageBox.h"
 
+#if defined(__ANDROID__)
+// Android stub: CBTMessageBox uses Win32 hooks which don't exist on Android
+int leaf::CBTMessageBox(HWND, const std::string&, const std::string&, UINT, bool)
+{
+	return 0;
+}
+#else
+
 int leaf::CBTMessageBox(HWND hWnd, const std::string& text, const std::string& caption, UINT uType, bool bAlwaysOnTop)
 {
 	return CCBTMessageBox::GetInstance()->OpenMessageBox(hWnd, text.c_str(), caption.c_str(), uType, bAlwaysOnTop);
@@ -115,6 +123,7 @@ LRESULT CALLBACK CCBTMessageBox::CBTProc(INT nCode, WPARAM wParam, LPARAM lParam
 	}
 	// otherwise, continue with any possible chained hooks
 	else CallNextHookEx(GetInstance()->GetHookHandle(), nCode, wParam, lParam);
-	
+
 	return 0;
 }
+#endif // !__ANDROID__

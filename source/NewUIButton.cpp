@@ -424,7 +424,7 @@ bool SEASON3B::CNewUIButton::Render( bool RendOption )
 				RenderBitmap(m_CurImgIndex, m_Pos.x, m_Pos.y, m_Size.x, m_Size.y, 0.008, 0.213, 0.83, 0.20, 1, 1, 1.0);
 				break;
 			case 2:
-				RenderBitmap(m_CurImgIndex, m_Pos.x, m_Pos.y, m_Size.x, m_Size.y, 0.008, 0.429, 0.83, 0.20, 1, 1, 1.0);	// QUANDO É PRESSIONADO
+				RenderBitmap(m_CurImgIndex, m_Pos.x, m_Pos.y, m_Size.x, m_Size.y, 0.008, 0.429, 0.83, 0.20, 1, 1, 1.0);	// QUANDO ï¿½ PRESSIONADO
 				break;
 			}
 		}
@@ -966,7 +966,7 @@ void CNewUIRadioGroupButton::ChangeRadioButtonInfo( bool iswidth, int x, int y, 
 }
 #endif // KJH_ADD_INGAMESHOP_UI_SYSTEM
 
-void CNewUIRadioGroupButton::ChangeRadioText(std::list<unicode::t_string>& textlist )
+void CNewUIRadioGroupButton::ChangeRadioText(std::list<unicode::t_string> textlist )
 {
 	std::list<unicode::t_string>::iterator textiter = textlist.begin();
 
@@ -1008,7 +1008,7 @@ void CNewUIRadioGroupButton::ChangeFrame( int buttonIndex )
 	}
 }
 
-// Ãß°¡ : Pruarin(07.09.03)
+// ï¿½ß°ï¿½ : Pruarin(07.09.03)
 void CNewUIRadioGroupButton::LockButtonindex( int buttonIndex )
 {
 	int i = 0;

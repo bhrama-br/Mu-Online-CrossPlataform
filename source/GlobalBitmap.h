@@ -9,7 +9,11 @@
 #include <deque>
 #include <string>
 #include <setjmp.h>
+#if defined(__ANDROID__)
+#include "../Dependencies/jpeg-9e-src/jpeglib.h"
+#else
 #include "../Dependencies/include/Jpeglib.h"
+#endif
 #include "./Time/Timer.h"
 
 #define MAX_BITMAP_FILE_NAME 256

@@ -263,7 +263,7 @@ void CMsgBoxIGSDeleteItemConfirm::UnloadImages()
 bool CMsgBoxIGSDeleteItemConfirmLayout::SetLayout()
 {
 	CMsgBoxIGSDeleteItemConfirm* pMsgBox = GetMsgBox();
-	if(false == pMsgBox)
+	if(NULL == pMsgBox)
 		return false;
 	
 	if(false == pMsgBox->Create())

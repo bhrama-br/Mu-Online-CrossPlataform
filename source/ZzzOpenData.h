@@ -22,6 +22,8 @@ void OpenPlayers();
 void OpenPlayerTextures();
 void OpenItems();
 void OpenItemTextures();
+void OpenSkills();
+void OpenImages();
 
 void OpenSkillHotKey(char *File);
 void SaveOptions();

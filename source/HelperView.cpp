@@ -122,9 +122,11 @@ void HELPER_VIEW::Render()
 
 	BMD* b = &Models[m_Obj->Type];
 
-	if (b) 
+	if (b)
 	{
+#if !defined(__ANDROID__)
 		gHelperSystem.m_Lua.Generic_Call("MoveEffects", "iii>", b, (DWORD)(m_Obj), m_Obj->Type);
+#endif
 		return;
 	}
 }

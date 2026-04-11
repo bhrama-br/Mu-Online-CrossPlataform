@@ -89,8 +89,10 @@ BuffStateValueControl& TheBuffStateValueControl();
 #define g_BuffStateValueString( outstr, type ) \
 	TheBuffStateValueControl().GetBuffValueString( outstr, type )
 
+#ifndef RGBA
 inline unsigned long RGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 { return (r)+(g<<8)+(b<<16)+(a<<24); }
+#endif
 inline unsigned char GetAlpha(unsigned long rgba)
 { return ((rgba) >> 24); }
 inline unsigned char GetRed(unsigned long rgba)
@@ -107,14 +109,16 @@ extern bool g_bRenderBoundingBox;
 
 inline void __TraceF(const TCHAR* pFmt, ...)
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) && !defined(__ANDROID__)
 	TCHAR	szMsg[4096];
 	va_list	pArgList;
 	va_start(pArgList, pFmt);
 	_vsntprintf(szMsg, sizeof(szMsg) / sizeof(TCHAR), pFmt, pArgList);
 	va_end(pArgList);
 	OutputDebugString(szMsg);
-#endif // _DEBUG
+#else
+	(void)pFmt;
+#endif
 }
 
 #endif	// _GLOBAL_FUNCTIONS_H

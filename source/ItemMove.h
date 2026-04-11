@@ -9,7 +9,7 @@ public:
 
 	virtual ~cItemMove();
 
-	void cItemMove::ResetMouseRButton();
+	void ResetMouseRButton();
 
 	void RightClickMoveItem();
 

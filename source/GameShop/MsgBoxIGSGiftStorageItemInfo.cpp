@@ -11,6 +11,7 @@
 
 #include "MsgBoxIGSGiftStorageItemInfo.h"
 
+#include "NewUISystem.h"
 #include "DSPlaySound.h"
 #include "wsclientinline.h"
 #include "MsgBoxIGSUseItemConfirm.h"
@@ -321,7 +322,7 @@ void CMsgBoxIGSGiftStorageItemInfo::UnloadImages()
 bool CMsgBoxIGSGiftStorageItemInfoLayout::SetLayout()
 {
 	CMsgBoxIGSGiftStorageItemInfo* pMsgBox = GetMsgBox();
-	if(false == pMsgBox)
+	if(NULL == pMsgBox)
 		return false;
 	
 	if(false == pMsgBox->Create())

@@ -3,6 +3,9 @@
 #include "Lua.h"
 #include "Protocol.h"
 #include "ZzzOpenglUtil.h"
+#include "ZzzCharacter.h"
+#include "NewUISystem.h"
+#include "NewUIChatLogWindow.h"
 
 class CLuaCharacter 
 {

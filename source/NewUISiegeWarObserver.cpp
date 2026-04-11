@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "NewUISiegeWarObserver.h"
+#include "UIControls.h"
+#include "ZzzCharacter.h"
 #include "wsclientinline.h"
 #include "Platform/RenderColorCompat.h"
 

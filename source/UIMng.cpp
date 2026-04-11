@@ -16,9 +16,7 @@
 #include "UIControls.h"
 #include "ServerListManager.h"
 #include "Platform/RenderBackend.h"
-#if !defined(__ANDROID__)
 #include "GameCensorship.h"
-#endif
 
 #define	DOCK_EXTENT		10
 
@@ -62,10 +60,6 @@ CUIMng& CUIMng::Instance()
 
 void CUIMng::CreateTitleSceneUI()
 {
-#if defined(__ANDROID__)
-	m_nScene = UIM_SCENE_TITLE;
-	return;
-#else
 	ReleaseTitleSceneUI();
 
 	g_GameCensorship->SetVisible(true);
@@ -149,31 +143,20 @@ void CUIMng::CreateTitleSceneUI()
 	m_pgbLoding->Show();
 	m_asprTitle[UIM_TS_121518].Show(false);
 	m_nScene = UIM_SCENE_TITLE;
-#endif
 }
 
 void CUIMng::ReleaseTitleSceneUI()
 {
-#if defined(__ANDROID__)
-	m_nScene = UIM_SCENE_NONE;
-#else
 	g_GameCensorship->SetVisible(false);
 
 	SAFE_DELETE_ARRAY(m_asprTitle);
 	SAFE_DELETE(m_pgbLoding);
 
 	m_nScene = UIM_SCENE_NONE;
-#endif
 }
 
 void CUIMng::RenderTitleSceneUI(HDC hDC, DWORD dwNow, DWORD dwTotal)
 {
-#if defined(__ANDROID__)
-	(void)hDC;
-	(void)dwNow;
-	(void)dwTotal;
-	return;
-#else
 	::BeginOpengl();
 	platform::GetRenderBackend().Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	::BeginBitmap();
@@ -193,7 +176,6 @@ void CUIMng::RenderTitleSceneUI(HDC hDC, DWORD dwNow, DWORD dwTotal)
 	::EndOpengl();
 	platform::GetRenderBackend().Flush();
 	platform::GetRenderBackend().PresentCurrentFrame();
-#endif
 }
 
 void CUIMng::Create()
@@ -220,52 +202,21 @@ void CUIMng::Release()
 {
 	RemoveWinList();
 
-#if !defined(__ANDROID__)
 	m_CharInfoBalloonMng.Release();
-#endif
 
 	m_nScene = UIM_SCENE_NONE;
 }
 
 void CUIMng::CreateLoginScene()
 {
-#if defined(__ANDROID__)
-	RemoveWinList();
-
-	CInput& rInput = CInput::Instance();
-
-	m_LoginMainWin.Create();
-	m_WinList.AddHead(&m_LoginMainWin);
-
-	int nBaseY = int(567.0f / 600.0f * (float)rInput.GetScreenHeight());
-	m_LoginMainWin.SetPosition(30, nBaseY - m_LoginMainWin.GetHeight() - 11);
-
-	m_ServerSelWin.Create();
-	m_WinList.AddHead(&m_ServerSelWin);
-	m_ServerSelWin.SetPosition(
-		(rInput.GetScreenWidth() - m_ServerSelWin.GetWidth()) / 2,
-		(rInput.GetScreenHeight() - m_ServerSelWin.GetHeight()) / 2);
-
-	m_LoginWin.Create();
-	m_WinList.AddHead(&m_LoginWin);
-	m_LoginWin.SetPosition(
-		(rInput.GetScreenWidth() - m_LoginWin.GetWidth()) / 2,
-		(rInput.GetScreenHeight() - m_LoginWin.GetHeight()) * 2 / 3);
-
-	m_bSysMenuWinShow = false;
-	m_nScene = UIM_SCENE_LOGIN;
-	return;
-#else
 	g_GameCensorship->SetVisible(false);
-	
+
 	RemoveWinList();
 
-#if !defined(__ANDROID__)
 	m_CharInfoBalloonMng.Release();
-#endif
 
 	CInput& rInput = CInput::Instance();
-	
+
 	m_MsgWin.Create();
 	m_WinList.AddHead(&m_MsgWin);
 	m_MsgWin.SetPosition((rInput.GetScreenWidth() - 352) / 2,
@@ -297,19 +248,13 @@ void CUIMng::CreateLoginScene()
 
 	m_CreditWin.Create();
 	m_WinList.AddHead(&m_CreditWin);
-	
+
 	m_bSysMenuWinShow = false;
 	m_nScene = UIM_SCENE_LOGIN;
-#endif
 }
 
 void CUIMng::CreateCharacterScene()
 {
-#if defined(__ANDROID__)
-	m_bSysMenuWinShow = false;
-	m_nScene = UIM_SCENE_LOGIN;
-	return;
-#else
 	g_GameCensorship->SetState( g_ServerListManager->GetCensorshipIndex() );
 
 	RemoveWinList();
@@ -352,16 +297,13 @@ void CUIMng::CreateCharacterScene()
 
 	m_bSysMenuWinShow = false;
 	m_nScene = UIM_SCENE_CHARACTER;
-#endif
 }
 
 void CUIMng::CreateMainScene()
 {
 	RemoveWinList();
 
-#if !defined(__ANDROID__)
 	m_CharInfoBalloonMng.Release();
-#endif
 
 	m_nScene = UIM_SCENE_MAIN;
 }
@@ -784,9 +726,7 @@ void CUIMng::Render()
 	if (UIM_SCENE_NONE == m_nScene)
 		return;
 
-#if !defined(__ANDROID__)
 	m_CharInfoBalloonMng.Render();
-#endif
 
 	CWin* pWin;
 	NODE* position = m_WinList.GetTailPosition();
@@ -799,29 +739,18 @@ void CUIMng::Render()
 
 void CUIMng::PopUpMsgWin(int nMsgCode, char* pszMsg)
 {
-#if defined(__ANDROID__)
-	(void)nMsgCode;
-	(void)pszMsg;
-	return;
-#else
 	if (UIM_SCENE_NONE == m_nScene || UIM_SCENE_TITLE == m_nScene || UIM_SCENE_LOADING == m_nScene)
 		return;
 
 	if (UIM_SCENE_MAIN == m_nScene)	return;
 
 	m_MsgWin.PopUp(nMsgCode, pszMsg);
-#endif
 }
 
 void CUIMng::AddServerMsg(char* pszMsg)
 {
-#if defined(__ANDROID__)
-	(void)pszMsg;
-	return;
-#else
 	if (UIM_SCENE_CHARACTER != m_nScene)
 		return;
 
 	m_ServerMsgWin.AddMsg(pszMsg);
-#endif
 }

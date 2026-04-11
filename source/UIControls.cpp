@@ -540,7 +540,7 @@ void CUITextListBox<T>::Clear()
 template <class T>
 void CUITextListBox<T>::ResetCheckedLine(BOOL bFlag)
 {
-	std::deque<T>::iterator EndIter = m_TextList.end();
+	typename std::deque<T>::iterator EndIter = m_TextList.end();
 	for (m_TextListIter = m_TextList.begin(); m_TextListIter != EndIter; ++m_TextListIter)
 	{
 		m_TextListIter->m_bIsSelected = bFlag;
@@ -550,7 +550,7 @@ void CUITextListBox<T>::ResetCheckedLine(BOOL bFlag)
 template <class T>
 BOOL CUITextListBox<T>::HaveCheckedLine()
 {
-	std::deque<T>::iterator EndIter = m_TextList.end();
+	typename std::deque<T>::iterator EndIter = m_TextList.end();
 	for (m_TextListIter = m_TextList.begin(); m_TextListIter != EndIter; ++m_TextListIter)
 	{
 		if (m_TextListIter->m_bIsSelected == TRUE) return TRUE;
@@ -562,7 +562,7 @@ template <class T>
 int CUITextListBox<T>::GetCheckedLines(std::deque<T*> * pSelectLineList)
 {
 	int iSelectLineNum = 0;
-	std::deque<T>::iterator EndIter = m_TextList.end();
+	typename std::deque<T>::iterator EndIter = m_TextList.end();
 	for (m_TextListIter = m_TextList.begin(); m_TextListIter != EndIter; ++m_TextListIter)
 	{
 		if (m_TextListIter->m_bIsSelected == TRUE)
@@ -621,7 +621,7 @@ typename std::deque<T>::iterator CUITextListBox<T>::SLGetSelectLine()
 	else if (m_iSelectLineNum == 0) return m_TextList.end();
 
 	int iLineCount = 1;
-	for (std::deque<T>::iterator resultIter = m_TextList.begin(); resultIter != m_TextList.end(); ++resultIter, ++iLineCount)
+	for (typename std::deque<T>::iterator resultIter = m_TextList.begin(); resultIter != m_TextList.end(); ++resultIter, ++iLineCount)
 	{
 		if (iLineCount == m_iSelectLineNum) return resultIter;
 	}
@@ -2703,12 +2703,15 @@ void CUIRenderTextOriginal::SetFont(HFONT hFont) { SelectObject(m_hFontDC, hFont
 
 void CUIRenderTextOriginal::WriteText(int iOffset, int iWidth, int iHeight)
 {
+	if (m_pFontBuffer == NULL) return;
+
 	const int LIMIT_WIDTH = 256, LIMIT_HEIGHT = 32;
-	
+
 	SIZE FontDCSize = { 640*g_fScreenRate_x, 480*g_fScreenRate_y };
 	int iPitch = ((FontDCSize.cx*24+31)&~31)>>3;
 
 	BITMAP_t * pBitmapFont = &Bitmaps[BITMAP_FONT];
+	if (pBitmapFont->Buffer == NULL) return;
 	for(int y = 0; y < iHeight; ++y)
 	{
 		int SrcIndex = y*iPitch+iOffset;
@@ -2740,6 +2743,7 @@ void CUIRenderTextOriginal::WriteText(int iOffset, int iWidth, int iHeight)
 void CUIRenderTextOriginal::UploadText(int sx,int sy,int Width,int Height)
 {
 	BITMAP_t *b = &Bitmaps[BITMAP_FONT];
+	if (b->Buffer == NULL || b->Width <= 0 || b->Height <= 0) return;
 	float TextureU = 0.f, TextureV = 0.f;
 	if(sx < 0)
 	{
@@ -3009,7 +3013,7 @@ CUITextInputBox::CUITextInputBox()
 
 CUITextInputBox::~CUITextInputBox()
 {
-	SetWindowLongW(m_hEditWnd, GWL_WNDPROC, (LONG)m_hOldProc);
+	SetWindowLongW(m_hEditWnd, GWL_WNDPROC, (LONG_PTR)m_hOldProc);
 	m_hOldProc = NULL;
 
 	if(m_hEditWnd != NULL)
@@ -3336,8 +3340,8 @@ void CUITextInputBox::Init(HWND hWnd, int iWidth, int iHeight, int iMaxLength, B
 	if(m_hEditWnd)
 	{
 		SetTextLimit(iMaxLength);
-		m_hOldProc = (WNDPROC)SetWindowLongW(m_hEditWnd, GWL_WNDPROC, (LONG)EditWndProc);
-		SetWindowLongW(m_hEditWnd, GWL_USERDATA, (LONG)this);
+		m_hOldProc = (WNDPROC)SetWindowLongW(m_hEditWnd, GWL_WNDPROC, (LONG_PTR)EditWndProc);
+		SetWindowLongW(m_hEditWnd, GWL_USERDATA, (LONG_PTR)this);
 		ShowWindow(m_hEditWnd, SW_HIDE);
 	}
 
@@ -3380,6 +3384,7 @@ void CUITextInputBox::GiveFocus(BOOL SelectText)
 void CUITextInputBox::UploadText(int sx,int sy,int Width,int Height)
 {
 	BITMAP_t *b = &Bitmaps[BITMAP_FONT];
+	if (b->Buffer == NULL || b->Width <= 0 || b->Height <= 0) return;
 	float TextureU = 0.f, TextureV = 0.f;
 	if(sx < 0)
 	{
@@ -3415,6 +3420,8 @@ void CUITextInputBox::UploadText(int sx,int sy,int Width,int Height)
 
 void CUITextInputBox::WriteText(int iOffset, int iWidth, int iHeight)
 {
+	if (m_pFontBuffer == NULL) return;
+
 	BOOL bIsCaretTime = (GetFocus() == m_hEditWnd && m_iCaretBlinkTemp % 24 < 12);
 	POINT pt;
 	GetCaretPos(&pt);
@@ -3429,6 +3436,7 @@ void CUITextInputBox::WriteText(int iOffset, int iWidth, int iHeight)
 	RECT rcCaret = { pt.x-LIMIT_WIDTH*iSectionX, pt.y-LIMIT_HEIGHT*iSectionY,pt.x-LIMIT_WIDTH*iSectionX+m_fCaretWidth, pt.y-LIMIT_HEIGHT*iSectionY+m_fCaretHeight };
 
 	BITMAP_t * pBitmapFont = &Bitmaps[BITMAP_FONT];
+	if (pBitmapFont->Buffer == NULL) return;
 	for(int y = 0; y < iHeight; ++y)
 	{
 		int SrcIndex = y*iPitch+iOffset;
@@ -3621,7 +3629,7 @@ void CUITextInputBox::SetFont(HFONT hFont)
 	if (m_hEditWnd == NULL || hFont == NULL)
 		return;
 
-	SendMessageW(m_hEditWnd, WM_SETFONT, (UINT)hFont, FALSE);
+	SendMessageW(m_hEditWnd, WM_SETFONT, (WPARAM)(UINT_PTR)hFont, FALSE);
 	SelectObject(m_hMemDC, hFont);
 }
 

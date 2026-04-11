@@ -413,10 +413,8 @@ void CMsgWin::PopUp(int nMsgCode, char* pszMsg)
 		CharactersClient[SelectedHero].Object.Live = false;
 		DeleteBug(&CharactersClient[SelectedHero].Object);
 		SelectedHero = -1;
-#if !defined(__ANDROID__)
 		rUIMng.m_CharSelMainWin.UpdateDisplay();
 		rUIMng.m_CharInfoBalloonMng.UpdateDisplay();
-#endif
 		lpszMsg = GlobalText[1714];
 		break;
 	case MESSAGE_BLOCKED_CHARACTER:
@@ -432,15 +430,11 @@ void CMsgWin::PopUp(int nMsgCode, char* pszMsg)
 		lpszMsg = GlobalText[391];
 		break;
 	case RECEIVE_CREATE_CHARACTER_FAIL:
-#if !defined(__ANDROID__)
 		rUIMng.ShowWin(&rUIMng.m_CharMakeWin);
-#endif
 		lpszMsg = GlobalText[1716];
 		break;
 	case RECEIVE_CREATE_CHARACTER_FAIL2:
-#if !defined(__ANDROID__)
 		rUIMng.ShowWin(&rUIMng.m_CharMakeWin);
-#endif
 		lpszMsg = GlobalText[396];
 		break;
 	case CREATE_ACCOUNT_FAIL_ERROR1:

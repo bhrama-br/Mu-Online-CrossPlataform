@@ -2,6 +2,8 @@
 #include "LuaEffects.h"
 #include "LuaEffectsNormal.h"
 #include "LuaStack.hpp"
+#include "ZzzBMD.h"
+#include "ZzzEffect.h"
 
 using namespace luaaa;
 

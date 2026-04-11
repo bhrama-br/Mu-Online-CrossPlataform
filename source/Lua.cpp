@@ -57,7 +57,9 @@ static BOOL LuaOpenFile(lua_State * L)
 
 static BOOL LuaConsole(lua_State * Lua)
 {
+#ifdef CONSOLE
 	Console.Write(false, "%s", luaL_checklstring(Lua, 1, 0));
+#endif
 	return 1;
 };
 

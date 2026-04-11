@@ -8,6 +8,13 @@
 Controller	gController;
 // ----------------------------------------------------------------------------------------------
 
+#if defined(__ANDROID__)
+// Android: no mouse/keyboard hooks
+bool Controller::Load() { return true; }
+LRESULT CALLBACK Controller::MouseProc(int nCode, WPARAM wParam, LPARAM lParam) { (void)nCode; (void)wParam; (void)lParam; return 0; }
+LRESULT CALLBACK Controller::KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) { (void)nCode; (void)wParam; (void)lParam; return 0; }
+#else
+
 bool Controller::Load()
 {
 	if( !this->MouseHook )
@@ -136,3 +143,4 @@ LRESULT CALLBACK Controller::KeyboardProc(int nCode, WPARAM wParam, LPARAM lPara
 
 	return CallNextHookEx(gController.KeyboardHook, nCode, wParam, lParam);
 }
+#endif // !__ANDROID__

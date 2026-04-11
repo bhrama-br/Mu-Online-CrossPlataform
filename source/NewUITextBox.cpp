@@ -6,6 +6,7 @@
 #include "Platform/RenderColorCompat.h"
 #include "NewUITextBox.h"
 #include "UIControls.h"
+#include "UsefulDef.h"
 #include "wsclientinline.h"
 
 using namespace SEASON3B;

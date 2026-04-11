@@ -2,7 +2,9 @@
 //  npcBreeder.cpp
 //////////////////////////////////////////////////////////////////////////
 #include "stdafx.h"
+#if !defined(__ANDROID__)
 #include <process.h>
+#endif
 #include "UIManager.h"
 #include "ZzzOpenglUtil.h"
 #include "ZzzBMD.h"
@@ -17,6 +19,7 @@
 #include "wsclientinline.h"
 #include "npcBreeder.h"
 #include "GIPetManager.h"
+#include "NewUISystem.h"
 
 
 extern  int SrcInventoryIndex;

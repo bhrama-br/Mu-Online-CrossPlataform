@@ -38,6 +38,7 @@ namespace platform
 		const size_t kLoginVersionSize = 5;
 		const size_t kLoginSerialSize = 16;
 		const size_t kCharacterNameSize = 10;
+		const size_t kResidentIdSize = 20;
 		const size_t kCharacterListEntrySize = 34;
 		const unsigned char kBuxCode[3] = { 0xFC, 0xCF, 0xAB };
 		const unsigned char kStreamPacketXorFilter[32] =
@@ -650,6 +651,68 @@ namespace platform
 				return;
 			}
 
+			if (head_code == 0xF3 && sub_code == 0x01)
+			{
+				if (packet_size < head_offset + 3)
+				{
+					return;
+				}
+
+				const unsigned char result = packet[head_offset + 2];
+				state->create_character_pending = false;
+				state->create_character_result = result;
+
+				if (result == 1)
+				{
+					state->status_message = "Personagem criado com sucesso";
+					state->character_list_requested = false;
+					state->character_list_received = false;
+					state->status = GameServerBootstrapStatus_LoginSucceeded;
+				}
+				else if (result == 2)
+				{
+					state->status_message = "Nome de personagem ja existe";
+				}
+				else
+				{
+					state->status_message = "Falha ao criar personagem";
+				}
+				return;
+			}
+
+			if (head_code == 0xF3 && sub_code == 0x02)
+			{
+				if (packet_size < head_offset + 3)
+				{
+					return;
+				}
+
+				const unsigned char result = packet[head_offset + 2];
+				state->delete_character_pending = false;
+				state->delete_character_result = result;
+
+				if (result == 1)
+				{
+					state->status_message = "Personagem excluido com sucesso";
+					state->character_list_requested = false;
+					state->character_list_received = false;
+					state->status = GameServerBootstrapStatus_LoginSucceeded;
+				}
+				else if (result == 0)
+				{
+					state->status_message = "Erro ao excluir: personagem em guilda";
+				}
+				else if (result == 3)
+				{
+					state->status_message = "Erro ao excluir: personagem com item bloqueado";
+				}
+				else
+				{
+					state->status_message = "Codigo pessoal incorreto";
+				}
+				return;
+			}
+
 			if (head_code == 0xF3 && sub_code == 0x03)
 			{
 				if (packet_size < head_offset + 6)
@@ -807,6 +870,58 @@ namespace platform
 				return true;
 			}
 
+			bool RequestCreateCharacter(GameServerBootstrapState* state, const char* name, unsigned char character_class, unsigned char skin)
+			{
+				if (state == NULL || !state->socket_open || name == NULL || name[0] == '\0')
+				{
+					return false;
+				}
+
+				unsigned char payload[1 + kCharacterNameSize + 1] = { 0 };
+				payload[0] = 0x01;
+				const size_t name_length = std::min(strlen(name), kCharacterNameSize);
+				memcpy(payload + 1, name, name_length);
+				payload[1 + kCharacterNameSize] = static_cast<unsigned char>((character_class << 4) | (skin & 0x0F));
+
+				if (!SendStreamPacket(state, 0xF3, payload, sizeof(payload)))
+				{
+					return false;
+				}
+
+				state->create_character_pending = true;
+				state->create_character_result = 0xFF;
+				state->status_message = std::string("Criando personagem ") + std::string(name, name_length);
+				return true;
+			}
+
+			bool RequestDeleteCharacter(GameServerBootstrapState* state, const char* name, const char* resident_id)
+			{
+				if (state == NULL || !state->socket_open || name == NULL || name[0] == '\0')
+				{
+					return false;
+				}
+
+				unsigned char payload[1 + kCharacterNameSize + kResidentIdSize] = { 0 };
+				payload[0] = 0x02;
+				const size_t name_length = std::min(strlen(name), kCharacterNameSize);
+				memcpy(payload + 1, name, name_length);
+				if (resident_id != NULL)
+				{
+					const size_t resident_length = std::min(strlen(resident_id), kResidentIdSize);
+					memcpy(payload + 1 + kCharacterNameSize, resident_id, resident_length);
+				}
+
+				if (!SendStreamPacket(state, 0xF3, payload, sizeof(payload)))
+				{
+					return false;
+				}
+
+				state->delete_character_pending = true;
+				state->delete_character_result = 0xFF;
+				state->status_message = std::string("Excluindo personagem ") + std::string(name, name_length);
+				return true;
+			}
+
 			bool SendAll(NativeSocket socket_value, const unsigned char* data, size_t size)
 			{
 				if (socket_value == kInvalidSocket || data == NULL || size == 0)
@@ -941,6 +1056,10 @@ namespace platform
 		state->character_class_code = 0;
 		state->character_move_count = 0;
 		state->max_character_count = 0;
+		state->create_character_pending = false;
+		state->create_character_result = 0xFF;
+		state->delete_character_pending = false;
+		state->delete_character_result = 0xFF;
 		state->map_join_requested = false;
 		state->map_join_received = false;
 		state->selected_character_slot = 0xFF;
@@ -1018,6 +1137,10 @@ namespace platform
 		state->character_class_code = 0;
 		state->character_move_count = 0;
 		state->max_character_count = 0;
+		state->create_character_pending = false;
+		state->create_character_result = 0xFF;
+		state->delete_character_pending = false;
+		state->delete_character_result = 0xFF;
 		state->map_join_requested = false;
 		state->map_join_received = false;
 		state->selected_character_slot = 0xFF;
@@ -1064,6 +1187,10 @@ namespace platform
 		state->character_class_code = 0;
 		state->character_move_count = 0;
 		state->max_character_count = 0;
+		state->create_character_pending = false;
+		state->create_character_result = 0xFF;
+		state->delete_character_pending = false;
+		state->delete_character_result = 0xFF;
 		state->map_join_requested = false;
 		state->map_join_received = false;
 		state->selected_character_slot = 0xFF;
@@ -1393,6 +1520,64 @@ namespace platform
 		}
 
 		return false;
+	}
+
+	bool RequestCreateCharacterBootstrap(GameServerBootstrapState* state, const char* name, unsigned char character_class, unsigned char skin)
+	{
+		if (state == NULL ||
+			!state->socket_open ||
+			!state->character_list_received ||
+			name == NULL ||
+			name[0] == '\0')
+		{
+			return false;
+		}
+
+		return RequestCreateCharacter(state, name, character_class, skin);
+	}
+
+	bool RequestDeleteCharacterBootstrap(GameServerBootstrapState* state, unsigned char character_slot, const char* resident_id)
+	{
+		if (state == NULL ||
+			!state->socket_open ||
+			!state->character_list_received)
+		{
+			return false;
+		}
+
+		for (size_t index = 0; index < state->characters.size(); ++index)
+		{
+			if (state->characters[index].slot == character_slot)
+			{
+				return RequestDeleteCharacter(state, state->characters[index].name.c_str(), resident_id);
+			}
+		}
+
+		return false;
+	}
+
+	unsigned char ConsumeCreateCharacterResult(GameServerBootstrapState* state)
+	{
+		if (state == NULL)
+		{
+			return 0xFF;
+		}
+
+		const unsigned char result = state->create_character_result;
+		state->create_character_result = 0xFF;
+		return result;
+	}
+
+	unsigned char ConsumeDeleteCharacterResult(GameServerBootstrapState* state)
+	{
+		if (state == NULL)
+		{
+			return 0xFF;
+		}
+
+		const unsigned char result = state->delete_character_result;
+		state->delete_character_result = 0xFF;
+		return result;
 	}
 
 	void DisconnectGameServerBootstrap(GameServerBootstrapState* state, const char* reason)

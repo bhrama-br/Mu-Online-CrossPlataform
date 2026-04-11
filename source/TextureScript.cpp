@@ -27,7 +27,7 @@ bool TextureScriptParsing::parsingTScript( char* filename )
     if ( strTokenFile!=NULL )
     {
         strDest = strtok ( strTokenFile, "." );
-        int length = std::min(5, static_cast<int>(strlen(strDest)));
+        int length = (std::min)(5, static_cast<int>(strlen(strDest)));
 
         int result = strcspn ( strDest, str );
         if ( result )//if ( m_strDest!=NULL )

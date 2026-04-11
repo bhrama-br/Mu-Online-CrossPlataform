@@ -419,9 +419,9 @@ void Draw_RenderObject(OBJECT *o,bool Translate,int Select, int ExtraMon)
 			{
 				BMD* b = &Models[o->Type];
 
-				if (b) 
+				if (b)
 				{
-					if (gPatente.PatentModelRender(DWORD(b), (DWORD)(o), o->Type) != 0)
+					if (gPatente.PatentModelRender((DWORD)(DWORD_PTR)(b), (DWORD)(DWORD_PTR)(o), o->Type) != 0)
 					{
 						return;
 					}
@@ -433,7 +433,9 @@ void Draw_RenderObject(OBJECT *o,bool Translate,int Select, int ExtraMon)
 
 				if (b)
 				{
+#if !defined(__ANDROID__)
 					gHelperSystem.m_Lua.Generic_Call("RenderHelper", "iii>", b, o, o->Type);
+#endif
 					return;
 				}
 			}
@@ -443,7 +445,7 @@ void Draw_RenderObject(OBJECT *o,bool Translate,int Select, int ExtraMon)
 
 				if (b)
 				{
-					gDarkSpirit.RenderModel((DWORD)b, (DWORD)o, o->Type);
+					gDarkSpirit.RenderModel((DWORD)(DWORD_PTR)b, (DWORD)(DWORD_PTR)o, o->Type);
 					return;
 				}
 			}
@@ -6943,7 +6945,7 @@ void RenderPartObjectBody(BMD *b,OBJECT *o,int Type,float Alpha,int RenderType)
 	int		nNum;
 	BMD* BMDStruct = &Models[Type];
 
-	DWORD ObjectStruct = (DWORD)o;
+	DWORD ObjectStruct = (DWORD)(DWORD_PTR)o;
 
 	nIndex = int((o->Type+1-MODEL_ITEM)/ 512.0f);
 	nNum = (o->Type-MODEL_ITEM)%512;
@@ -9139,7 +9141,7 @@ void RenderPartObjectBodyColor(BMD *b,OBJECT *o,int Type,float Alpha,int RenderT
 
 void RenderPartObjectBodyColor2(BMD *b,OBJECT *o,int Type,float Alpha,int RenderType,float Bright,int Texture)
 {
-	DWORD ObjectStruct = (DWORD)o;
+	DWORD ObjectStruct = (DWORD)(DWORD_PTR)o;
 #ifdef PBG_ADD_NEWCHAR_MONK_ITEM
 	if(Type >= MODEL_HELM_MONK && Type <= MODEL_BOOTS_MONK + MODEL_ITEM_COMMONCNT_RAGEFIGHTER)
 		Type = g_CMonkSystem.OrginalTypeCommonItemMonk(Type);
@@ -9601,10 +9603,12 @@ void RenderPartObjectEffect(OBJECT *o,int Type,vec3_t Light,float Alpha,int Item
 #endif //LJH_ADD_ITEMS_EQUIPPED_FROM_INVENTORY_SYSTEM
 	}
 
+#if !defined(__ANDROID__)
 	if(g_pOption->GetRenderLevel() < 4)
 	{
 		Level = min( Level, g_pOption->GetRenderLevel() * 2 + 5 );
 	}
+#endif
 
 	if(o->Type==MODEL_SPEAR+9)
 	{
@@ -10262,6 +10266,7 @@ void RenderPartObjectEffect(OBJECT *o,int Type,vec3_t Light,float Alpha,int Item
 			VectorMul(l,Light,b->BodyLight);
             RenderPartObjectBody(b,o,Type,Alpha,RenderType);
 		}
+#if !defined(__ANDROID__)
 		else if(g_pOption->GetRenderLevel())
         {
 		    if(Level < 8 && g_pOption->GetRenderLevel() >= 1)  //  +7
@@ -10273,7 +10278,7 @@ void RenderPartObjectEffect(OBJECT *o,int Type,vec3_t Light,float Alpha,int Item
 		    else if(Level < 9 && g_pOption->GetRenderLevel() >= 1)  //  +8
 		    {
 			    Vector(Light[0]*0.8f,Light[1]*0.8f,Light[2]*0.8f,b->BodyLight);
-                RenderPartObjectBody(b,o,Type,Alpha,RenderType);	
+                RenderPartObjectBody(b,o,Type,Alpha,RenderType);
 			    RenderPartObjectBodyColor(b,o,Type,Alpha,RENDER_CHROME|RENDER_BRIGHT,1.f);
 		    }
             else if(Level < 10 && g_pOption->GetRenderLevel() >= 2) //  +9
@@ -10336,6 +10341,7 @@ void RenderPartObjectEffect(OBJECT *o,int Type,vec3_t Light,float Alpha,int Item
                 RenderPartObjectBody(b,o,Type,Alpha,RenderType);
             }
         }
+#endif // !__ANDROID__
         else
         {
 			VectorCopy(Light,b->BodyLight);
@@ -10343,10 +10349,12 @@ void RenderPartObjectEffect(OBJECT *o,int Type,vec3_t Light,float Alpha,int Item
         }
 
 
-		if(g_pOption->GetRenderLevel() == 0) 
+#if !defined(__ANDROID__)
+		if(g_pOption->GetRenderLevel() == 0)
 		{
 			return;
 		}
+#endif
 
 		if (gCustomWing.CheckCustomWingByItem(Type - MODEL_ITEM) == 1)
 		{

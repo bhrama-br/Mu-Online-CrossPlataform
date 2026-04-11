@@ -2,19 +2,21 @@
 #ifndef _GMAIDA_H_
 #define _GMAIDA_H_
 
+#include "ZzzBMD.h"
+
 
 namespace M33Aida {
 
 	bool IsInAida();
 	bool IsInAidaSection2(const vec3_t Position);
 
-	//. ¿ÀºêÁ§Æ®
+	//. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
 	bool CreateAidaObject(OBJECT* pObject);
 	bool MoveAidaObject(OBJECT* pObject);
 	bool RenderAidaObjectVisual(OBJECT* pObject, BMD* pModel);
 	bool RenderAidaObjectMesh(OBJECT* pObject, BMD* pModel,bool ExtraMon = 0);
 	
-	//. ¸ó½ºÅÍ
+	//. ï¿½ï¿½ï¿½ï¿½
 	CHARACTER* CreateAidaMonster(int iType, int PosX, int PosY, int Key);
 
 	bool MoveAidaMonsterVisual(OBJECT* pObject, BMD* pModel);
@@ -26,7 +28,7 @@ namespace M33Aida {
 	bool SetCurrentActionAidaMonster(CHARACTER* pCharacter, OBJECT* pObject);
 	
 	
-	//. È­¸é Ã³¸®
+	//. È­ï¿½ï¿½ Ã³ï¿½ï¿½
 	bool CreateMist(PARTICLE* pParticleObj);
 }
 

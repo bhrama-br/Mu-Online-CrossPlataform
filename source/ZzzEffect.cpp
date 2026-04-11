@@ -6333,13 +6333,13 @@ void CreateEffect(int Type, vec3_t Position, vec3_t Angle, vec3_t Light, int Sub
                 o->HeadAngle[2] += (25.0f) * FPS_ANIMATION_FACTOR;
             }
             break;
-            case MODEL_PHOENIX_SHOT:
-            {
-                if (o->Live)
-                {
-                }
-            }
-            break;
+            //case MODEL_PHOENIX_SHOT: // removed — constant not defined
+            //{
+            //    if (o->Live)
+            //    {
+            //    }
+            //}
+            //break;
 #endif //PBG_ADD_NEWCHAR_MONK_SKILL
             }
             return;

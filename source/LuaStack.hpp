@@ -12,9 +12,15 @@ licensed under MIT License.
 
 extern "C"
 {
+#if defined(__ANDROID__)
+#include <luajit/lua.h>
+#include <luajit/lualib.h>
+#include <luajit/lauxlib.h>
+#else
 #include <luajit\lua.h>
 #include <luajit\lualib.h>
 #include <luajit\lauxlib.h>
+#endif
 }
 
 #if !defined LUA_VERSION_NUM || LUA_VERSION_NUM <= 501
@@ -200,7 +206,7 @@ namespace LUAAA_NS
 		{
 			if (lua_isnumber(L, idx) || lua_isstring(L, idx))
 			{
-				return unsigned long(lua_tointeger(L, idx));
+				return static_cast<unsigned long>(lua_tointeger(L, idx));
 			}
 			else
 			{
@@ -214,6 +220,31 @@ namespace LUAAA_NS
 			lua_pushinteger(L, t);
 		}
 	};
+
+#if defined(__ANDROID__)
+	// On Android ARM64, DWORD = unsigned int (not unsigned long)
+	template<>
+	struct LuaStack<unsigned int>
+	{
+		inline static unsigned int get(lua_State* L, int idx)
+		{
+			if (lua_isnumber(L, idx) || lua_isstring(L, idx))
+			{
+				return static_cast<unsigned int>(lua_tointeger(L, idx));
+			}
+			else
+			{
+				luaL_checktype(L, idx, LUA_TNUMBER);
+			}
+			return 0;
+		}
+
+		inline static void put(lua_State* L, const unsigned int& t)
+		{
+			lua_pushinteger(L, t);
+		}
+	};
+#endif
 
 	template<>
 	struct LuaStack<bool>

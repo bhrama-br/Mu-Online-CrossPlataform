@@ -69,6 +69,9 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
+#include "Platform/WinsockAndroidCompat.h"
+#include "Platform/Win32SecondaryStubs.h"
 #else
 #include <windows.h>
 
@@ -108,6 +111,7 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include "Platform/GLFixedFunctionStubs.h"
 #else
 #include <gl/glew.h>
 #include <gl/gl.h>
@@ -126,10 +130,8 @@
 #if defined(__ANDROID__)
 #include "Platform/LegacyAndroidGameCompat.h"
 #endif
-#if !defined(__ANDROID__)
-#include "_GlobalFunctions.h"
 #include "w_WindowMessageHandler.h"
-#endif
+#include "_GlobalFunctions.h"
 #if defined(__ANDROID__)
 #include "NProtocol.h"
 #endif

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "NewUICursedTempleResult.h"
 #include "NewUICommonMessageBox.h"
+#include "NewUISystem.h"
 #include "UIBaseDef.h"
 #include "DSPlaySound.h"
 #include "ZzzInfomation.h"

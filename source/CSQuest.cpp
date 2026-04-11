@@ -16,6 +16,7 @@
 #include "GIPetManager.h"
 #include "UsefulDef.h"
 #include "NewUIInventoryCtrl.h"
+#include "NewUISystem.h"
 #include "CharacterManager.h"
 
 bool bCheckNPC;
@@ -30,13 +31,7 @@ extern  char g_lpszDialogAnswer[MAX_ANSWER_FOR_DIALOG][NUM_LINE_DA][MAX_LENGTH_C
 
 static  CSQuest csQuest;
 
-static BYTE bBuxCode[3] = {0xfc,0xcf,0xab};
-
-static void BuxConvert(BYTE *Buffer,int Size)
-{
-	for(int i=0;i<Size;i++)
-		Buffer[i] ^= bBuxCode[i%3];
-}
+// BuxConvert is provided by WSclient.cpp (declared in wsclientinline.h)
 
 CSQuest::CSQuest(void) : m_byClass( 255 ), m_byCurrQuestIndex( 0 ), m_byCurrQuestIndexWnd( 0 ),
 						m_byStartQuestList( 0 ), m_shCurrPage( 0 ), m_byViewQuest( QUEST_VIEW_NONE ), m_byQuestType( TYPE_QUEST ), m_iStartX(640-190), m_iStartY(0) 

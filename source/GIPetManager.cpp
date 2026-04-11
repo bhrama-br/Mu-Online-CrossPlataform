@@ -26,6 +26,9 @@
 #include "ZzzEffect.h"
 #include "CharacterManager.h"
 #include "DarkSpirit.h"
+#include "NewUISystem.h"
+#include "NewUIInventoryCtrl.h"
+#include "NewUIChatLogWindow.h"
 
 extern  bool    SkillEnable;
 extern	char    TextList[50][100];

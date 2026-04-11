@@ -20,6 +20,7 @@
 #include "UIBaseDef.h"
 #include "MapManager.h"
 #include "GM_Kanturu_2nd.h"
+#include "NewUISystem.h"
 #include "DSPlaySound.h"
 #include "wsclientinline.h"
 #include "ChangeRingManager.h"
@@ -110,7 +111,7 @@ CHARACTER* M38Kanturu2nd::Create_Kanturu2nd_Monster(int iType, int PosX, int Pos
 		{
 			OpenNpc(MODEL_KANTURU2ND_ENTER_NPC);
 			pCharacter = CreateCharacter(Key, MODEL_KANTURU2ND_ENTER_NPC, PosX, PosY);
-			strcpy(pCharacter->ID, "ÃâÀÔ °ü¸® ÀåÄ¡");
+			strcpy(pCharacter->ID, "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡");
 			pCharacter->Object.Scale = 4.76f;
 			pCharacter->Object.Position[0] -= 20.0f;
 			pCharacter->Object.Position[1] -= 200.0f;

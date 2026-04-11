@@ -19,6 +19,7 @@
 #include "NewUICustomMessageBox.h"
 #include "MapManager.h"
 #include "CharacterManager.h"
+#include "NewUISystem.h"
 
 extern int g_iChatInputType;
 extern int g_iCustomMessageBoxButton[NUM_BUTTON_CMB][NUM_PAR_BUTTON_CMB];

@@ -16,6 +16,7 @@
 #include "CMVP1stDirection.h"
 #include "CSChaosCastle.h"
 #include "MapManager.h"
+#include "NewUISystem.h"
 #include "Platform/RenderColorCompat.h"
 #include "CharacterManager.h"
 #include "SkillManager.h"

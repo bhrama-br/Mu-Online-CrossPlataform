@@ -19,9 +19,6 @@
 #include "ProtocolSend.h"
 #include "ServerListManager.h"
 #include "Widescreen.h"
-#if defined(__ANDROID__)
-#include "Platform/LegacyLoginUiRuntime.h"
-#endif
 
 #define	LIW_ACCOUNT		0
 #define	LIW_PASSWORD	1
@@ -247,10 +244,6 @@ void CLoginWin::RenderControls()
 
 void CLoginWin::RequestLogin()
 {
-#if defined(__ANDROID__)
-	platform::HandleLegacyLoginConfirmAction();
-	return;
-#else
 	if (CurrentProtocolState == REQUEST_JOIN_SERVER)
 		return;
 
@@ -260,7 +253,7 @@ void CLoginWin::RequestLogin()
 	char szPass[MAX_PASSWORD_SIZE+1] = {0, };
 	m_pIDInputBox->GetText(szID, MAX_ID_SIZE+1);
 	m_pPassInputBox->GetText(szPass, MAX_PASSWORD_SIZE+1);
-	
+
 	if (unicode::_strlen(szID) <= 0)
 		CUIMng::Instance().PopUpMsgWin(MESSAGE_INPUT_ID);
 	else if (unicode::_strlen(szPass) <= 0)
@@ -273,31 +266,20 @@ void CLoginWin::RequestLogin()
 
 			g_ErrorReport.Write("> Login Request.\r\n");
 			g_ErrorReport.Write("> Try to Login \"%s\"\r\n", szID);
-			SendRequestLogIn(szID, szPass); 			
+			SendRequestLogIn(szID, szPass);
 		}
 	}
-#endif
 }
 
 void CLoginWin::CancelLogin()
 {
-#if defined(__ANDROID__)
-	platform::HandleLegacyLoginCancelAction();
-	return;
-#else
 	ConnectConnectionServer();
 	CUIMng::Instance().HideWin(this);
-#endif
 }
 
 void CLoginWin::ConnectConnectionServer()
 {
-#if defined(__ANDROID__)
-	platform::HandleLegacyLoginCancelAction();
-	return;
-#else
 	LogIn = 0;
 	CurrentProtocolState = REQUEST_JOIN_SERVER;
     CreateSocket(szServerIpAddress, g_ServerPort);
-#endif
 }

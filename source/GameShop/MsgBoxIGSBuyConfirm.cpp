@@ -8,7 +8,9 @@
 #include "MsgBoxIGSBuyConfirm.h"
 #include "DSPlaySound.h"
 #include "wsclientinline.h"
+#if !defined(__ANDROID__)
 #include <strsafe.h>
+#endif
 
 CMsgBoxIGSBuyConfirm::CMsgBoxIGSBuyConfirm()
 {
@@ -235,7 +237,7 @@ void CMsgBoxIGSBuyConfirm::UnloadImages()
 bool CMsgBoxIGSBuyConfirmLayout::SetLayout()
 {
 	CMsgBoxIGSBuyConfirm* pMsgBox = GetMsgBox();
-	if(false == pMsgBox)
+	if(NULL == pMsgBox)
 		return false;
 	
 	if(false == pMsgBox->Create())

@@ -12,7 +12,9 @@
 #include <string>
 #include <unordered_map>
 
+#if !defined(MU_ANDROID_HAS_MULTILANGUAGE_RUNTIME)
 CMultiLanguage* CMultiLanguage::ms_Singleton = NULL;
+#endif
 
 namespace
 {
@@ -111,6 +113,8 @@ namespace platform
 	}
 }
 
+#if !defined(MU_ANDROID_HAS_UICONTROLS_RUNTIME)
+
 DWORD CreateUIID()
 {
 	static DWORD s_next_ui_id = 1;
@@ -120,7 +124,9 @@ DWORD CreateUIID()
 DWORD g_dwActiveUIID = 0;
 DWORD g_dwMouseUseUIID = 0;
 DWORD g_dwCurrentPressedButtonID = 0;
+#if !defined(MU_ANDROID_HAS_UICONTROLS_RUNTIME)
 DWORD g_dwKeyFocusUIID = 0;
+#endif
 bool MouseOnWindow = false;
 
 BOOL CheckMouseIn(int iPos_x, int iPos_y, int iWidth, int iHeight, int CoordType)
@@ -342,7 +348,7 @@ void CUITextInputBox::GetText(char* pszText, int iGetLenght)
 	}
 
 	const std::string& text = GetAndroidInputBoxState(this).text;
-	const size_t copy_size = std::min(static_cast<size_t>(iGetLenght - 1), text.size());
+	const size_t copy_size = (std::min)(static_cast<size_t>(iGetLenght - 1), text.size());
 	memcpy(pszText, text.c_str(), copy_size);
 	pszText[copy_size] = '\0';
 }
@@ -355,7 +361,7 @@ void CUITextInputBox::GetText(wchar_t* pwszText, int iGetLenght)
 	}
 
 	const std::string& text = GetAndroidInputBoxState(this).text;
-	const size_t copy_size = std::min(static_cast<size_t>(iGetLenght - 1), text.size());
+	const size_t copy_size = (std::min)(static_cast<size_t>(iGetLenght - 1), text.size());
 	for (size_t index = 0; index < copy_size; ++index)
 	{
 		pwszText[index] = static_cast<wchar_t>(static_cast<unsigned char>(text[index]));
@@ -372,6 +378,7 @@ BOOL CUITextInputBox::DoMouseAction()
 	return FALSE;
 }
 
+#if !defined(MU_ANDROID_HAS_MULTILANGUAGE_RUNTIME)
 CMultiLanguage::CMultiLanguage(std::string strSelectedML)
 	: byLanguage(0)
 	, iCodePage(CP_UTF8)
@@ -518,6 +525,7 @@ BOOL CMultiLanguage::_TextOut(HDC hdc, int nXStart, int nYStart, LPCSTR lpString
 	(void)cbString;
 	return TRUE;
 }
+#endif
 
 CUIRenderText::CUIRenderText()
 	: m_pRenderText(NULL)
@@ -617,6 +625,7 @@ void CUIRenderText::RenderText(int iPos_x, int iPos_y, const char* pszText, int 
 	}
 }
 
+#if !defined(MU_ANDROID_HAS_DSPLAYSOUND_RUNTIME)
 HRESULT PlayBuffer(int Buffer, OBJECT* Object, BOOL bLooped)
 {
 	(void)Buffer;
@@ -624,6 +633,7 @@ HRESULT PlayBuffer(int Buffer, OBJECT* Object, BOOL bLooped)
 	(void)bLooped;
 	return 0;
 }
+#endif
 
 #if !defined(MU_ANDROID_HAS_ZZZOPENGLUTIL_RUNTIME)
 void BindTexture(int tex)
@@ -686,5 +696,7 @@ bool CBitmapCache::Find(GLuint uiBitmapIndex, BITMAP_t** ppBitmap)
 	}
 	return false;
 }
+
+#endif // !defined(MU_ANDROID_HAS_UICONTROLS_RUNTIME)
 
 #endif

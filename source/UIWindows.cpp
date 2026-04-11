@@ -20,6 +20,7 @@
 #include "CharacterManager.h"
 #include "Platform/RenderBackend.h"
 #include "Platform/RenderColorCompat.h"
+#include "NewUISystem.h"
 
 extern float g_fScreenRate_x;
 extern float g_fScreenRate_y;
@@ -4823,7 +4824,7 @@ void CUITextInputWindow::ReturnText()
 	m_TextInputBox.SetText(NULL);
 	if (pszReturnText[0] == '\0') return;
 
-	g_pWindowMgr->SendUIMessageToWindow(m_dwReturnWindowUIID, UI_MESSAGE_TXTRETURN, GetUIID(), (DWORD)pszReturnText);
+	g_pWindowMgr->SendUIMessageToWindow(m_dwReturnWindowUIID, UI_MESSAGE_TXTRETURN, GetUIID(), (DWORD)(DWORD_PTR)pszReturnText);
 	g_pWindowMgr->SendUIMessage(UI_MESSAGE_CLOSE, GetUIID(), 0);
 }
 

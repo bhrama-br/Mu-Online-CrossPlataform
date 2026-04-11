@@ -3,6 +3,10 @@
 #include "ItemMove.h"
 #include "NewUIInventoryCtrl.h"
 #include "ZzzInventory.h"
+#include "UIControls.h"
+#include "ZzzCharacter.h"
+#include "NewUISystem.h"
+#include "NewUIChatLogWindow.h"
 #include "Platform/RenderColorCompat.h"
 
 CTradeX gTradeX;

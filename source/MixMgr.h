@@ -263,7 +263,9 @@ namespace SEASON3A
 		{
 			m_iMixSubType = 0;
 			m_btPlusChaosRate = 0;
+#if !defined(__ANDROID__)
 			OpenRecipeFile("Data\\Local\\Mix.bmd");
+#endif
 		}
 		virtual ~CMixRecipeMgr() {}
 

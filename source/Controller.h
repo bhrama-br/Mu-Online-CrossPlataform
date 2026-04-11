@@ -1,6 +1,12 @@
 #pragma once
 // ----------------------------------------------------------------------------------------------
 
+#if defined(__ANDROID__)
+#ifndef HHOOK
+typedef void* HHOOK;
+#endif
+#endif
+
 class Controller
 {
 public:

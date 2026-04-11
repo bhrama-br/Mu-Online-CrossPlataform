@@ -5,6 +5,8 @@
 #include "ZzzInterface.h"
 #include "ZzzInventory.h"
 #include "NewUISystem.h"
+#include "NewUIChatLogWindow.h"
+#include "MapManager.h"
 
 using namespace luaaa;
 
@@ -36,6 +38,7 @@ std::string GetLanguage() {
 }
 
 void setLang(char* lang) {
+#if !defined(__ANDROID__)
 	static DWORD m_CallFunc = 0x00409B10;
 	static DWORD m_CallFunc2 = 0x00500E80;
 
@@ -46,7 +49,9 @@ void setLang(char* lang) {
 		CALL[m_CallFunc];
 		CALL[m_CallFunc2];
 	}
-
+#else
+	(void)lang;
+#endif
 }
 
 void SetLanguage(char* value)

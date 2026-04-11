@@ -4,6 +4,8 @@
 
 #include "stdafx.h"
 #include "NewUISiegeWarSoldier.h"
+#include "UIControls.h"
+#include "ZzzCharacter.h"
 #include "wsclientinline.h"
 #include "Platform/RenderColorCompat.h"
 

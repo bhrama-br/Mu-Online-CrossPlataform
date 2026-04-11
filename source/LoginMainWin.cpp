@@ -99,18 +99,6 @@ bool CLoginMainWin::CursorInWin(int nArea)
 
 void CLoginMainWin::UpdateWhileActive(double dDeltaTick)
 {
-#if defined(__ANDROID__)
-	(void)dDeltaTick;
-	if (m_aBtn[LMW_BTN_MENU].IsClick())
-	{
-		platform::HandleLegacyLoginMainButtonAction(LMW_BTN_MENU);
-	}
-	else if (m_aBtn[LMW_BTN_CREDIT].IsClick())
-	{
-		platform::HandleLegacyLoginMainButtonAction(LMW_BTN_CREDIT);
-	}
-	return;
-#else
 	if (m_aBtn[LMW_BTN_MENU].IsClick())
 	{
 		CUIMng& rUIMng = CUIMng::Instance();
@@ -143,7 +131,6 @@ void CLoginMainWin::UpdateWhileActive(double dDeltaTick)
 		rUIMng.SetMoving(true);
 	}
 #endif	// MOVIE_DIRECTSHOW
-#endif
 }
 
 void CLoginMainWin::RenderControls()

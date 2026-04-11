@@ -11,6 +11,10 @@
 #include "ZzzLodTerrain.h"
 #include "wsclientinline.h"
 #include "CSChaosCastle.h"
+#include "_enum.h"
+#include "LoadData.h"
+#include "SkillManager.h"
+#include "MapManager.h"
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -83,40 +87,40 @@ void CMonkSystem::RegistItem()
 
 void CMonkSystem::LoadModelItem()
 {
-	AccessModel(MODEL_SWORD+32, "Data\\Item\\", "Sword33");	
-	AccessModel(MODEL_SWORD_32_LEFT, "Data\\Item\\", "SwordL33");
-	AccessModel(MODEL_SWORD_32_RIGHT, "Data\\Item\\", "SwordR33");
+	gLoadData.AccessModel(MODEL_SWORD+32, "Data\\Item\\", "Sword33");	
+	gLoadData.AccessModel(MODEL_SWORD_32_LEFT, "Data\\Item\\", "SwordL33");
+	gLoadData.AccessModel(MODEL_SWORD_32_RIGHT, "Data\\Item\\", "SwordR33");
 
-	AccessModel(MODEL_SWORD+33, "Data\\Item\\", "Sword34");	
-	AccessModel(MODEL_SWORD_33_LEFT, "Data\\Item\\", "SwordL34");
-	AccessModel(MODEL_SWORD_33_RIGHT, "Data\\Item\\", "SwordR34");
+	gLoadData.AccessModel(MODEL_SWORD+33, "Data\\Item\\", "Sword34");	
+	gLoadData.AccessModel(MODEL_SWORD_33_LEFT, "Data\\Item\\", "SwordL34");
+	gLoadData.AccessModel(MODEL_SWORD_33_RIGHT, "Data\\Item\\", "SwordR34");
 
-	AccessModel(MODEL_SWORD+34, "Data\\Item\\", "Sword35");	
-	AccessModel(MODEL_SWORD_34_LEFT, "Data\\Item\\", "SwordL35");
-	AccessModel(MODEL_SWORD_34_RIGHT, "Data\\Item\\", "SwordR35");
+	gLoadData.AccessModel(MODEL_SWORD+34, "Data\\Item\\", "Sword35");	
+	gLoadData.AccessModel(MODEL_SWORD_34_LEFT, "Data\\Item\\", "SwordL35");
+	gLoadData.AccessModel(MODEL_SWORD_34_RIGHT, "Data\\Item\\", "SwordR35");
 
-	AccessModel(MODEL_ARMORINVEN_60, "Data\\player\\", "Armor_inventory60");
-	AccessModel(MODEL_ARMORINVEN_61, "Data\\player\\", "ArmorMale61_inventory");
-	AccessModel(MODEL_ARMORINVEN_62, "Data\\player\\", "ArmorMale62_inventory");
+	gLoadData.AccessModel(MODEL_ARMORINVEN_60, "Data\\player\\", "Armor_inventory60");
+	gLoadData.AccessModel(MODEL_ARMORINVEN_61, "Data\\player\\", "ArmorMale61_inventory");
+	gLoadData.AccessModel(MODEL_ARMORINVEN_62, "Data\\player\\", "ArmorMale62_inventory");
 }
 
 void CMonkSystem::LoadModelItemTexture()
 {
-	OpenTexture(MODEL_SWORD+32, "player\\");	
-	OpenTexture(MODEL_SWORD_32_LEFT, "player\\");
-	OpenTexture(MODEL_SWORD_32_RIGHT, "player\\");
+	gLoadData.OpenTexture(MODEL_SWORD+32, "player\\");	
+	gLoadData.OpenTexture(MODEL_SWORD_32_LEFT, "player\\");
+	gLoadData.OpenTexture(MODEL_SWORD_32_RIGHT, "player\\");
 
-	OpenTexture(MODEL_SWORD+33, "Item\\");
-	OpenTexture(MODEL_SWORD_33_LEFT, "Item\\");
-	OpenTexture(MODEL_SWORD_33_RIGHT, "Item\\");
+	gLoadData.OpenTexture(MODEL_SWORD+33, "Item\\");
+	gLoadData.OpenTexture(MODEL_SWORD_33_LEFT, "Item\\");
+	gLoadData.OpenTexture(MODEL_SWORD_33_RIGHT, "Item\\");
 
-	OpenTexture(MODEL_SWORD+34, "player\\");
-	OpenTexture(MODEL_SWORD_34_LEFT, "player\\");
-	OpenTexture(MODEL_SWORD_34_RIGHT, "player\\");
+	gLoadData.OpenTexture(MODEL_SWORD+34, "player\\");
+	gLoadData.OpenTexture(MODEL_SWORD_34_LEFT, "player\\");
+	gLoadData.OpenTexture(MODEL_SWORD_34_RIGHT, "player\\");
 	
-	OpenTexture(MODEL_ARMORINVEN_60, "player\\");
-	OpenTexture(MODEL_ARMORINVEN_61, "player\\");
-	OpenTexture(MODEL_ARMORINVEN_62, "player\\");
+	gLoadData.OpenTexture(MODEL_ARMORINVEN_60, "player\\");
+	gLoadData.OpenTexture(MODEL_ARMORINVEN_61, "player\\");
+	gLoadData.OpenTexture(MODEL_ARMORINVEN_62, "player\\");
 }
 
 int CMonkSystem::GetSubItemType(int _Type, int _Left)
@@ -302,7 +306,7 @@ bool CMonkSystem::RageEquipmentWeapon(int _Index, short _ItemType)
 {
 	int _OtherEquip = (_Index == EQUIPMENT_WEAPON_LEFT) ? EQUIPMENT_WEAPON_RIGHT : EQUIPMENT_WEAPON_LEFT;
 	ITEM *pOtherHand = &CharacterMachine->Equipment[_OtherEquip];
-	//±Û·¯ºêÇü ¹«±â´Â ±Û·¯ºêÇü¹«±âÇÏ°í¸¸ Âø¿ë°¡´É
+	//ï¿½Û·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ë°¡ï¿½ï¿½
 	if(g_CMonkSystem.IsSwordformGlovesItemType(_ItemType))
 	{	
 		if(pOtherHand->Type == -1)
@@ -436,7 +440,7 @@ bool CMonkSystem::SendAttackPacket(CHARACTER* _pCha, int _nMoveTarget, int _nSki
 			SendPosition(CharPosX, CharPosY);
 
 		VectorCopy(CharactersClient[_nMoveTarget].Object.Position, _pCha->TargetPosition);
-		//¸ó½ºÅÍÀÇ ³Ë¹éÈ¿°úÀÇ ÀÇÇØ ÀÌÆåÆ®°¡ È¥¶õ½º·¯¿ò ¹æÁö
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¹ï¿½È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ È¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		if(!(pObj->CurrentAction == PLAYER_SKILL_GIANTSWING && m_btAttState == FRAME_SECONDATT))
 			pObj->Angle[2] = CreateAngle(pObj->Position[0], pObj->Position[1], _pCha->TargetPosition[0], _pCha->TargetPosition[1]);
 
@@ -913,7 +917,7 @@ void CMonkSystem::RenderRepeatedly(int _Key, OBJECT *pObj)
 		float scale = 15.0f;
 
 		switch(m_arrRepeatedly[_index].m_DamageType)
-		{	//µ¥¹ÌÁöÅ¸ÀÔ¿¡ µû¸¥ÄÃ·¯
+		{	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã·ï¿½
 		case 0:
 			if(_Key == HeroKey)
 			{
@@ -951,7 +955,7 @@ void CMonkSystem::RenderRepeatedly(int _Key, OBJECT *pObj)
 		}
 	
 		if(m_arrRepeatedly[_index].m_Double)
-		{	// ´õºíµ¥¹ÌÁö
+		{	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			Position[2] += 10.f;
 			Vector(Light[0]-0.2f,Light[1]-0.2f,Light[2]-0.2f,Light2);
 			CreatePoint(Position,Damage,Light2, scale+5.f, true);
@@ -968,7 +972,7 @@ bool CMonkSystem::IsRideNotUseSkill(int _nSkill, short _Type)
 	if(_Type != MODEL_HELPER+37 && _Type != MODEL_HELPER+2 && _Type != MODEL_HELPER+3)
 		return false;
 
-	// Å»°ÍÅ¸°í ÀÖÀ» °æ¿ì »ç¿ë ºÒ°¡´ÉÇÑ ½ºÅ³
+	// Å»ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
 	switch(_nSkill)
 	{
 	case AT_SKILL_THRUST:
@@ -987,7 +991,7 @@ bool CMonkSystem::IsSwordformGlovesUseSkill(int _nSkill)
 {
 	switch(_nSkill)
 	{
-	case AT_SKILL_GIANTSWING:	//¿©±â ½ºÅ³µéÀº Àå°©Çü ¹«±â¸¦ Âø¿ë½Ã¿¡¸¸ »ç¿ë°¡´É
+	case AT_SKILL_GIANTSWING:	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½å°©ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ ï¿½ï¿½ë°¡ï¿½ï¿½
 	case AT_SKILL_DRAGON_LOWER:
 	case AT_SKILL_DRAGON_KICK:
 		{
@@ -1422,7 +1426,7 @@ void CDummyUnit::CalDummyPosition(vec3_t vOutPos, float& fAni)
 	}
 	fAni = m_fAniFrame;
 	float _fDisFrame = m_fDisFrame*0.7f;
-	if(InChaosCastle()
+	if(gMapManager.InChaosCastle()
 #ifdef PBG_MOD_RAGEFIGHTERSOUND
 		|| bChange
 #endif //PBG_MOD_RAGEFIGHTERSOUND

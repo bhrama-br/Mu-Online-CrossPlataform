@@ -7,14 +7,15 @@
 #include "ZzzObject.h"
 #include "ZzzAI.h"
 #include "ZzzEffect.h"
+#include "ZzzScene.h"
 
 extern float EarthQuake;
 
 PetObjectPtr PetObject::Make()
 {
-	PetObjectPtr PetObject( new PetObject );
-	PetObject->Init();
-	return PetObject;
+	PetObjectPtr petObj( new class PetObject );
+	petObj->Init();
+	return petObj;
 }
 
 PetObject::PetObject():

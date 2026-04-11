@@ -14,6 +14,10 @@
 #include <crtdbg.h>
 #endif
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+#endif
+
 CSprite::CSprite()
 {
 	m_aFrameTexCoord = NULL;
@@ -55,6 +59,15 @@ void CSprite::Create(int nOrgWidth, int nOrgHeight, int nTexID, int nMaxFrame, S
 
 	if (-1 < m_nTexID)
 	{
+		if (m_pTexture == NULL)
+		{
+			m_pTexture = Bitmaps.GetTexture(m_nTexID);
+#if defined(__ANDROID__)
+			__android_log_print(ANDROID_LOG_WARN, "mu_android_char",
+				"CSprite::Create: FindTexture(%d) returned NULL, using fallback (w=%.0f h=%.0f)",
+				m_nTexID, m_pTexture ? m_pTexture->Width : -1.0f, m_pTexture ? m_pTexture->Height : -1.0f);
+#endif
+		}
 		m_aTexCoord[LT].fTU = 0.5f / m_pTexture->Width;
 		m_aTexCoord[LT].fTV = 0.5f / m_pTexture->Height;
 		m_aTexCoord[LB].fTU = 0.5f / m_pTexture->Width;

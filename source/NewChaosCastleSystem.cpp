@@ -7,6 +7,7 @@
 using namespace SEASON3B;
 
 #include "NewChaosCastleSystem.h"
+#include "NewUISystem.h"
 
 #include "UIWindows.h"
 #include "ZzzOpenglUtil.h"

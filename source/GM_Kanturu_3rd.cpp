@@ -400,7 +400,7 @@ bool M39Kanturu3rd::RenderKanturu3rdObjectMesh(OBJECT* o, BMD* b,bool ExtraMon)
 	{
 		switch(o->Type) 
 		{
-		case 0: // ¸¶¾ß
+		case 0: // ï¿½ï¿½ï¿½ï¿½
 			{
 				if(g_Direction.m_CKanturu.GetMayaExplotion())
 				{
@@ -661,7 +661,7 @@ void M39Kanturu3rd::RenderKanturu3rdAfterObjectMesh(OBJECT* o, BMD* b,bool Extra
 CHARACTER* M39Kanturu3rd::CreateKanturu3rdMonster(int iType, int PosX, int PosY, int Key)
 {
 	if(!IsInKanturu3rd())
-		return false;
+		return NULL;
 
 	CHARACTER* c = NULL;
 

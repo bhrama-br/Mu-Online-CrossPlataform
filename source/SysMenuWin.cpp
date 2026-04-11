@@ -139,7 +139,9 @@ void CSysMenuWin::UpdateWhileActive(double dDeltaTick)
 	{
 		CUIMng& rUIMng = CUIMng::Instance();
 		rUIMng.HideWin(this);
+#if !defined(__ANDROID__)
 		rUIMng.ShowWin(&rUIMng.m_OptionWin);
+#endif
 	}
 	else if (m_aBtn[SMW_BTN_CLOSE].IsClick())
 	{

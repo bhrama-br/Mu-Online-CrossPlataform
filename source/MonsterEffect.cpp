@@ -2,6 +2,7 @@
 #include "MonsterEffect.h"
 #include "LuaStack.hpp"
 #include "Console.h"
+#include "ZzzEffect.h"
 
 using namespace luaaa;
 

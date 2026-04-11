@@ -13,6 +13,8 @@
 #include "CSParts.h"
 #include "wsclientinline.h"
 #include "NewUICommonMessageBox.h"
+#include "NewUISystem.h"
+#include "NewUIChatLogWindow.h"
 #include "CharacterManager.h"
 #include "Platform/RenderColorCompat.h"
 

@@ -33,7 +33,18 @@
 #include "Platform/GamePacketCryptoBootstrap.h"
 #include "Platform/GameServerBootstrap.h"
 #include "Platform/RenderBackend.h"
+#include "Platform/AndroidGameInit.h"
+#include "Platform/AndroidNetworkPollCompat.h"
 #include "_define.h"
+
+// Forward declarations for original game loop (avoids pulling in stdafx.h/WSclient.h)
+class CWsctlc;
+extern CWsctlc SocketClient;
+extern void ProtocolCompiler(CWsctlc* pSocketClient, int iTranslation, int iParam);
+extern bool CheckRenderNextFrame();
+extern void RenderScene(HDC hDC);
+extern HDC g_hDC;
+extern int SceneFlag;
 
 namespace
 {
@@ -263,6 +274,7 @@ namespace
 		unsigned int preview_game_logged_attempt;
 		std::string preview_game_logged_message;
 		float phase;
+		bool original_game_initialized;
 	};
 
 	bool CollectPreviewCharacterEntries(
@@ -1468,6 +1480,25 @@ namespace
 		}
 
 		EnsurePreviewGameServer(state);
+
+		// Auto-login: if credentials are pre-filled and GameServer is configured but idle, start login
+		if (state->game_server_bootstrap.configured &&
+			state->game_server_bootstrap.status == platform::GameServerBootstrapStatus_Idle &&
+			!state->auto_login_user.empty() &&
+			!state->preview_password_value.empty())
+		{
+			__android_log_print(ANDROID_LOG_INFO, kLogTag, "AutoLogin: triggering login for user=%s", state->auto_login_user.c_str());
+			if (state->legacy_login_ui_ready)
+			{
+				platform::HandleLegacyLoginConfirmAction();
+			}
+			if (!platform::RequestGameServerLoginBootstrap(&state->game_server_bootstrap))
+			{
+				__android_log_print(ANDROID_LOG_WARN, kLogTag, "AutoLogin: failed - %s", state->game_server_bootstrap.status_message.c_str());
+			}
+			state->auto_login_user.clear(); // prevent repeated attempts
+		}
+
 		platform::PollGameServerBootstrap(&state->game_server_bootstrap);
 
 		const int current_status = static_cast<int>(state->game_server_bootstrap.status);
@@ -2868,9 +2899,12 @@ namespace
 
 		state->has_core_bootstrap = false;
 
-		CProtect protect;
+		if (gProtect == NULL)
+		{
+			gProtect = new CProtect;
+		}
 		platform::CoreGameBootstrapState core_bootstrap_state;
-		if (!platform::InitializeCoreGameProtect(&protect, &core_bootstrap_state))
+		if (!platform::InitializeCoreGameProtect(gProtect, &core_bootstrap_state))
 		{
 			__android_log_print(ANDROID_LOG_WARN, kLogTag, "Core bootstrap failed: %s", core_bootstrap_state.error_message.c_str());
 			return;
@@ -5057,6 +5091,18 @@ namespace
 				password_target_right - password_target_x,
 				password_target_bottom - password_target_y
 			};
+			{
+				static int field_rect_log = 0;
+				if (field_rect_log < 3) {
+					++field_rect_log;
+					__android_log_print(ANDROID_LOG_INFO, kLogTag,
+						"AccountRect x=%.1f y=%.1f w=%.1f h=%.1f PasswordRect x=%.1f y=%.1f w=%.1f h=%.1f",
+						account_target_x, account_target_y,
+						account_target_right - account_target_x, account_target_bottom - account_target_y,
+						password_target_x, password_target_y,
+						password_target_right - password_target_x, password_target_bottom - password_target_y);
+				}
+			}
 
 			const bool account_focused =
 				has_legacy_login_state ? legacy_login_state.account_focused : (state->preview_focused_target == PreviewHitTarget_FieldAccount);
@@ -5222,6 +5268,16 @@ namespace
 
 				state->preview_login_button_rect = { login_x, button_y, button_width, button_height };
 				state->preview_cancel_button_rect = { cancel_x, button_y, cancel_width, cancel_height };
+				{
+					static int login_rect_log = 0;
+					if (login_rect_log < 3) {
+						++login_rect_log;
+						__android_log_print(ANDROID_LOG_INFO, kLogTag,
+							"LoginButtonRect x=%.1f y=%.1f w=%.1f h=%.1f cancel_x=%.1f legacy=%s screen=%dx%d",
+							login_x, button_y, button_width, button_height, cancel_x,
+							legacy_login_button ? "yes" : "no", width, height);
+					}
+				}
 				const int login_row = ResolveLegacyButtonRow(legacy_login_button, 3, login_hot ? 1 : 0);
 				const int cancel_row = ResolveLegacyButtonRow(legacy_cancel_button, 3, cancel_hot ? 1 : 0);
 				DrawTexturedQuadUv(
@@ -6211,13 +6267,75 @@ log_preview_action:
 		}
 	}
 
-	void RenderFrame(BootstrapState* state)
+	bool IsBootstrapReadyForOriginalGameClient(const BootstrapState* state)
 	{
-		if (state == NULL || !state->egl_window.IsReady())
+		return state->has_game_data
+			&& state->has_core_bootstrap
+			&& state->has_client_ini_bootstrap
+			&& state->has_packet_crypto_bootstrap
+			&& state->has_language_assets
+			&& state->has_global_text_bootstrap;
+	}
+
+	bool TryInitializeOriginalGameClient(BootstrapState* state)
+	{
+		if (state->original_game_initialized)
 		{
-			return;
+			return true;
 		}
 
+		if (!IsBootstrapReadyForOriginalGameClient(state))
+		{
+			return false;
+		}
+
+		const int surface_width = state->egl_window.GetWidth();
+		const int surface_height = state->egl_window.GetHeight();
+
+		__android_log_print(ANDROID_LOG_INFO, kLogTag,
+			"Initializing original game client (%dx%d)", surface_width, surface_height);
+
+		const bool ok = platform::InitializeOriginalGameClient(surface_width, surface_height);
+		if (!ok)
+		{
+			__android_log_print(ANDROID_LOG_ERROR, kLogTag,
+				"InitializeOriginalGameClient failed");
+			return false;
+		}
+
+		state->original_game_initialized = true;
+		__android_log_print(ANDROID_LOG_INFO, kLogTag,
+			"Original game client initialized, SceneFlag=%d", SceneFlag);
+		return true;
+	}
+
+	void RenderOriginalGameFrame(BootstrapState* state)
+	{
+		// Sync touch/mouse input to legacy engine globals
+		platform::SyncLegacyClientMouseState(&state->game_mouse_state);
+
+		// Poll network I/O (replaces WSAAsyncSelect on Android)
+		platform::PollSocketIO(SocketClient);
+
+		// Process incoming packets
+		ProtocolCompiler(&SocketClient, 0, 0);
+
+		// Render if frame pacing allows
+		if (CheckRenderNextFrame())
+		{
+			RenderScene(g_hDC);
+			// NOTE: Do NOT call SwapBuffers() here — the game's own rendering
+			// pipeline calls PresentCurrentFrame() (eglSwapBuffers) inside
+			// MainScene()/RenderTitleSceneUI(). A second swap would display
+			// an undefined/black back buffer instead of the rendered content.
+		}
+
+		// Advance one-shot mouse events (push/pop/doubleclick)
+		platform::AdvanceLegacyClientMouseState(&state->game_mouse_state);
+	}
+
+	void RenderBootstrapFrame(BootstrapState* state)
+	{
 		PollPreviewConnectServer(state);
 		PollPreviewGameServer(state);
 		const bool preview_character_stage = IsPreviewCharacterStage(state);
@@ -6312,16 +6430,72 @@ log_preview_action:
 				}
 				break;
 			case platform::LegacyCharacterUiAction_Create:
-				SetPreviewStatusMessage(state, "Criacao de personagem ainda nao integrada");
 				break;
 			case platform::LegacyCharacterUiAction_Menu:
 				SetPreviewStatusMessage(state, "Menu da tela de personagem");
 				break;
 			case platform::LegacyCharacterUiAction_Delete:
-				SetPreviewStatusMessage(state, "Exclusao de personagem ainda nao integrada");
+				if (state->game_server_bootstrap.selected_character_slot != 0xFF)
+				{
+					if (!platform::RequestDeleteCharacterBootstrap(
+						&state->game_server_bootstrap,
+						state->game_server_bootstrap.selected_character_slot,
+						""))
+					{
+						SetPreviewStatusMessage(state, "Falha ao excluir personagem");
+					}
+					else
+					{
+						RefreshPreviewStatusFromGameServer(state);
+					}
+				}
+				else
+				{
+					SetPreviewStatusMessage(state, "Selecione um personagem");
+				}
 				break;
 			default:
 				break;
+			}
+
+			{
+				const unsigned char create_result = platform::ConsumeCreateCharacterResult(&state->game_server_bootstrap);
+				if (create_result != 0xFF)
+				{
+					if (create_result == 1)
+					{
+						SetPreviewStatusMessage(state, "Personagem criado com sucesso");
+					}
+					else if (create_result == 2)
+					{
+						SetPreviewStatusMessage(state, "Nome de personagem ja existe");
+					}
+					else
+					{
+						SetPreviewStatusMessage(state, "Falha ao criar personagem");
+					}
+				}
+
+				const unsigned char delete_result = platform::ConsumeDeleteCharacterResult(&state->game_server_bootstrap);
+				if (delete_result != 0xFF)
+				{
+					if (delete_result == 1)
+					{
+						SetPreviewStatusMessage(state, "Personagem excluido com sucesso");
+					}
+					else if (delete_result == 0)
+					{
+						SetPreviewStatusMessage(state, "Erro: personagem em guilda");
+					}
+					else if (delete_result == 3)
+					{
+						SetPreviewStatusMessage(state, "Erro: personagem com item bloqueado");
+					}
+					else
+					{
+						SetPreviewStatusMessage(state, "Codigo pessoal incorreto");
+					}
+				}
 			}
 		}
 		state->phase += 0.01f;
@@ -6428,6 +6602,7 @@ void android_main(struct android_app* app)
 	platform::InitializeConnectServerBootstrapState(&state.connect_server_bootstrap);
 	platform::InitializeGameServerBootstrapState(&state.game_server_bootstrap);
 	state.phase = 0.0f;
+	state.original_game_initialized = false;
 
 	app->userData = &state;
 	app->onAppCmd = HandleCommand;
@@ -6459,6 +6634,18 @@ void android_main(struct android_app* app)
 			continue;
 		}
 
-		RenderFrame(&state);
+		if (!state.original_game_initialized)
+		{
+			TryInitializeOriginalGameClient(&state);
+		}
+
+		if (state.original_game_initialized)
+		{
+			RenderOriginalGameFrame(&state);
+		}
+		else
+		{
+			RenderBootstrapFrame(&state);
+		}
 	}
 }

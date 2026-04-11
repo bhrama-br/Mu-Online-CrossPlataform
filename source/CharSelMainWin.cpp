@@ -15,12 +15,8 @@
 #include "ZzzOpenData.h"
 #include "ZzzOpenglUtil.h"
 #include "ServerListManager.h"
-#if !defined(__ANDROID__)
 #include "CharacterList.h"
-#else
-#include "Platform/LegacyCharacterUiRuntime.h"
 #include "Platform/RenderBackend.h"
-#endif
 
 extern float g_fScreenRate_x;
 extern float g_fScreenRate_y;
@@ -29,12 +25,7 @@ namespace
 {
 	int ResolveCharacterSceneMaxCharacters()
 	{
-#if defined(__ANDROID__)
-		const int max_characters = platform::GetLegacyCharacterUiMaxCharacters();
-		return max_characters > 0 ? max_characters : 10;
-#else
 		return gCharacterList.MaxCharacters;
-#endif
 	}
 }
 
@@ -170,19 +161,13 @@ void CCharSelMainWin::UpdateDisplay()
 	
 	if (bNobodyCharacter == true)
 	{
-#if !defined(__ANDROID__)
 		CUIMng& rUIMng = CUIMng::Instance();
 		rUIMng.ShowWin(&rUIMng.m_CharMakeWin);
-#endif
 	}
 }
 
 void CCharSelMainWin::UpdateWhileActive(double dDeltaTick)
 {
-#if defined(__ANDROID__)
-	(void)dDeltaTick;
-	return;
-#else
 	if (m_aBtn[CSMW_BTN_CONNECT].IsClick())
 		::StartGame();
 	else if (m_aBtn[CSMW_BTN_MENU].IsClick())
@@ -195,11 +180,9 @@ void CCharSelMainWin::UpdateWhileActive(double dDeltaTick)
 	{
 		CUIMng& rUIMng = CUIMng::Instance();
 		rUIMng.ShowWin(&rUIMng.m_CharMakeWin);
-
 	}
 	else if (m_aBtn[CSMW_BTN_DELETE].IsClick())
 		DeleteCharacter();
-#endif
 }
 
 void CCharSelMainWin::RenderControls()
@@ -208,11 +191,7 @@ void CCharSelMainWin::RenderControls()
 		m_asprBack[i].Render();
 
 	::EnableAlphaTest();
-#if defined(__ANDROID__)
 	platform::GetRenderBackend().SetCurrentColor(1.0f, 1.0f, 1.0f, 1.0f);
-#else
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-#endif
 	
 	g_pRenderText->SetFont(g_hFixFont);
 	g_pRenderText->SetTextColor(CLRDW_WHITE);
@@ -230,16 +209,12 @@ void CCharSelMainWin::RenderControls()
 
 void CCharSelMainWin::DeleteCharacter()
 {
-#if defined(__ANDROID__)
-	return;
-#else
     if (CharactersClient[SelectedHero].GuildStatus != G_NONE)
 		CUIMng::Instance().PopUpMsgWin(MESSAGE_DELETE_CHARACTER_GUILDWARNING);
 	else if (CharactersClient[SelectedHero].CtlCode	& (CTLCODE_02BLOCKITEM | CTLCODE_10ACCOUNT_BLOCKITEM))
 		CUIMng::Instance().PopUpMsgWin(MESSAGE_DELETE_CHARACTER_ID_BLOCK);
 	else
 		CUIMng::Instance().PopUpMsgWin(MESSAGE_DELETE_CHARACTER_CONFIRM);
-#endif
 }
 
 const CButton* CCharSelMainWin::GetButton(int nIndex) const

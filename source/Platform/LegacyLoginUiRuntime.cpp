@@ -272,6 +272,7 @@ namespace
 	}
 }
 
+#if !defined(MU_ANDROID_HAS_ZZZSCENE_RUNTIME)
 int SeparateTextIntoLines(const char* text, char* separated, int max_line, int line_size)
 {
 	if (text == NULL || separated == NULL || max_line <= 0 || line_size <= 0)
@@ -315,6 +316,7 @@ int SeparateTextIntoLines(const char* text, char* separated, int max_line, int l
 
 	return line_count;
 }
+#endif
 
 namespace platform
 {

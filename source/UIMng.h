@@ -4,23 +4,17 @@
 #pragma once
 
 #include "PList.h"
-#if !defined(__ANDROID__)
 #include "MsgWin.h"
 #include "SysMenuWin.h"
 #include "OptionWin.h"
-#endif
 #include "LoginMainWin.h"
 #include "ServerSelWin.h"
 #include "LoginWin.h"
-#if !defined(__ANDROID__)
 #include "CreditWin.h"
-#endif
-#if !defined(__ANDROID__)
 #include "CharSelMainWin.h"
 #include "CharMakeWin.h"
 #include "CharInfoBalloonMng.h"
 #include "ServerMsgWin.h"
-#endif
 
 #define	UIM_SCENE_NONE			0
 #define	UIM_SCENE_TITLE			1
@@ -37,23 +31,17 @@ class CLoadingScene;
 class CUIMng  
 {
 public:
-#if !defined(__ANDROID__)
 	CMsgWin			m_MsgWin;
 	CSysMenuWin		m_SysMenuWin;
 	COptionWin		m_OptionWin;
-#endif
 	CLoginMainWin	m_LoginMainWin;
 	CServerSelWin	m_ServerSelWin;
 	CLoginWin		m_LoginWin;
-#if !defined(__ANDROID__)
 	CCreditWin		m_CreditWin;
-#endif
-#if !defined(__ANDROID__)
 	CCharSelMainWin	m_CharSelMainWin;
 	CCharMakeWin	m_CharMakeWin;
 	CCharInfoBalloonMng	m_CharInfoBalloonMng;
 	CServerMsgWin	m_ServerMsgWin;
-#endif
 	CLoadingScene*	m_pLoadingScene;
 
 protected:
@@ -91,11 +79,7 @@ public:
 	bool IsCursorOnUI() { return m_bCursorOnUI; }
 	void PopUpMsgWin(int nMsgCode, char* pszMsg = NULL);
 	void AddServerMsg(char* pszMsg);
-#if defined(__ANDROID__)
-	void CloseMsgWin() {}
-#else
 	void CloseMsgWin() { HideWin(&m_MsgWin); }
-#endif
 	void SetSysMenuWinShow(bool bShow) { m_bSysMenuWinShow = bShow; }
 	bool IsSysMenuWinShow() { return m_bSysMenuWinShow; };
 

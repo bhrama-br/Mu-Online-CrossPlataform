@@ -60,6 +60,7 @@
 #include "CounterItem.h"
 #include "Platform/RenderColorCompat.h"
 #include "Platform/RenderStateCompat.h"
+#include "GameShop/NewUIInGameShop.h"
 
 extern CUITextInputBox * g_pSingleTextInputBox;
 extern int g_iChatInputType;
@@ -2037,11 +2038,11 @@ void GetSpecialOptionText ( int Type, char* Text, BYTE Option, BYTE Value, int i
 		break;
 #ifdef PBG_ADD_NEWCHAR_MONK_SKILL
 	case AT_SKILL_THRUST:
-		GetSkillInformation( Option, 1, NULL, &iMana, NULL);
+		gSkillManager.GetSkillInformation( Option, 1, NULL, &iMana, NULL);
         sprintf(Text,GlobalText[3153], iMana);
 		break;
 	case AT_SKILL_STAMP:
-		GetSkillInformation( Option, 1, NULL, &iMana, NULL);
+		gSkillManager.GetSkillInformation( Option, 1, NULL, &iMana, NULL);
         sprintf(Text,GlobalText[3154], iMana);
 		break;
 #endif //PBG_ADD_NEWCHAR_MONK_SKILL
@@ -2058,7 +2059,11 @@ void RenderItemInfo(int sx,int sy,ITEM *ip,bool Sell, int Inventype, bool bItemT
 	tm* ExpireTime;
 	if( ip->bPeriodItem == true && ip->bExpiredPeriod == false)
 	{
+#ifdef __ANDROID__
+		tzset();
+#else
 		_tzset();
+#endif
 		if( ip->lExpireTime == 0 )
 			return;
 

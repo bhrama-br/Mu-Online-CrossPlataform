@@ -8,10 +8,12 @@
 #include "CharMakeWin.h"
 #include "CharSelMainWin.h"
 #include "CharacterList.h"
+#include "CharacterManager.h"
 #include "GlobalBitmap.h"
 #include "Input.h"
 #include "MapManager.h"
 #include "UIMng.h"
+#include "LoadData.h"
 #include "ZzzOpenData.h"
 #include "ZzzOpenglUtil.h"
 #include "ZzzCharacter.h"
@@ -21,10 +23,12 @@
 #include "Widescreen.h"
 
 #include "Platform/LegacyClientRuntime.h"
+#include "Platform/RenderBackend.h"
 
 #include <android/log.h>
 #include <algorithm>
 #include <cstring>
+#include <new>
 
 namespace
 {
@@ -63,10 +67,15 @@ namespace
 	{
 		if (Bitmaps.FindTexture(bitmap_index) != NULL)
 		{
+			__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+				"Tex[%u] already loaded: %s", bitmap_index, asset_path ? asset_path : "?");
 			return true;
 		}
 
-		return Bitmaps.LoadImage(bitmap_index, asset_path != NULL ? asset_path : "", filter, wrap);
+		bool ok = Bitmaps.LoadImage(bitmap_index, asset_path != NULL ? asset_path : "", filter, wrap);
+		__android_log_print(ok ? ANDROID_LOG_INFO : ANDROID_LOG_ERROR, kLegacyCharacterLogTag,
+			"Tex[%u] %s: %s", bitmap_index, ok ? "OK" : "FAILED", asset_path ? asset_path : "?");
+		return ok;
 	}
 
 	bool InitializeLegacyCharacterTextures()
@@ -249,34 +258,134 @@ namespace
 		character->Key = static_cast<SHORT>(slot_index);
 	}
 
-	void EnsureLegacyCharacterSceneDataLoaded()
+	// Lightweight version of OpenPlayers() for CHARACTER_SCENE on Android.
+	// The full OpenPlayers() loads hundreds of equipment models (helms, armors,
+	// boots for every tier) which cumulatively exhaust mobile memory.
+	// This version allocates the same Models array (for index compatibility)
+	// but only loads MODEL_PLAYER + default body models for each class —
+	// the minimum needed to render characters on the selection screen.
+	// Minimum Models array size for CHARACTER_SCENE: highest index is in
+	// MODEL_BODY range (~8900) plus some margin for LOGO/FACE models loaded
+	// by OpenCharacterSceneData. Full MAX_MODELS (~20000) is wasteful.
+	static const int kCharacterSceneMaxModels = MODEL_BODY_BOOTS + MODEL_BODY_NUM + 256;
+
+	bool TryAccessModel(int type, const char* dir, const char* file, int index = -1)
 	{
-		if (g_legacy_character_ui_runtime.scene_data_loaded)
+		try
 		{
-			// Continue below so render assets can still be completed lazily.
+			gLoadData.AccessModel(type, dir, file, index);
+			return true;
 		}
-		else
+		catch (const std::bad_alloc&)
 		{
-			OpenCharacterSceneData();
-			g_legacy_character_ui_runtime.scene_data_loaded = true;
+			__android_log_print(ANDROID_LOG_ERROR, kLegacyCharacterLogTag,
+				"OOM loading model type=%d file=%s%s index=%d", type, dir, file, index);
+			return false;
+		}
+	}
+
+	void OpenPlayersForCharacterScene()
+	{
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: allocating %d entries (%.1f MB) sizeof(BMD)=%zu",
+			kCharacterSceneMaxModels, (kCharacterSceneMaxModels * sizeof(BMD)) / (1024.0f * 1024.0f),
+			sizeof(BMD));
+
+		ModelsDump = new(std::nothrow) BMD[kCharacterSceneMaxModels + 1024];
+		if (ModelsDump == NULL)
+		{
+			__android_log_print(ANDROID_LOG_ERROR, kLegacyCharacterLogTag,
+				"OpenPlayersForCharacterScene: FAILED to allocate Models array!");
+			return;
+		}
+		Models = ModelsDump + (rand() % 1024);
+		ZeroMemory(Models, kCharacterSceneMaxModels * sizeof(BMD));
+
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: Models array OK, loading MODEL_PLAYER...");
+
+		TryAccessModel(MODEL_PLAYER, "Data\\Player\\", "Player");
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: MODEL_PLAYER NumActions=%d NumBones=%d NumMeshs=%d",
+			Models[MODEL_PLAYER].NumActions, Models[MODEL_PLAYER].NumBones,
+			Models[MODEL_PLAYER].NumMeshs);
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: MODEL_PLAYER done, loading tier1 body...");
+
+		for (int i = 0; i < MAX_CLASS; ++i)
+		{
+			TryAccessModel(MODEL_BODY_HELM   + i, "Data\\Player\\", "HelmClass",  i + 1);
+			TryAccessModel(MODEL_BODY_ARMOR  + i, "Data\\Player\\", "ArmorClass", i + 1);
+			TryAccessModel(MODEL_BODY_PANTS  + i, "Data\\Player\\", "PantClass",  i + 1);
+			TryAccessModel(MODEL_BODY_GLOVES + i, "Data\\Player\\", "GloveClass", i + 1);
+			TryAccessModel(MODEL_BODY_BOOTS  + i, "Data\\Player\\", "BootClass",  i + 1);
+		}
+		// Log body part model status for class 0 (Dark Wizard)
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"Tier1 class0: HELM[%d]=%d ARMOR[%d]=%d PANTS[%d]=%d GLOVES[%d]=%d BOOTS[%d]=%d",
+			MODEL_BODY_HELM, Models[MODEL_BODY_HELM].NumActions,
+			MODEL_BODY_ARMOR, Models[MODEL_BODY_ARMOR].NumActions,
+			MODEL_BODY_PANTS, Models[MODEL_BODY_PANTS].NumActions,
+			MODEL_BODY_GLOVES, Models[MODEL_BODY_GLOVES].NumActions,
+			MODEL_BODY_BOOTS, Models[MODEL_BODY_BOOTS].NumActions);
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: tier1 OK, loading tier2...");
+
+		for (int i = 0; i < MAX_CLASS; ++i)
+		{
+			if (CLASS_DARK == i || CLASS_DARK_LORD == i)
+				continue;
+			TryAccessModel(MODEL_BODY_HELM   + MAX_CLASS + i, "Data\\Player\\", "HelmClass2",  i + 1);
+			TryAccessModel(MODEL_BODY_ARMOR  + MAX_CLASS + i, "Data\\Player\\", "ArmorClass2", i + 1);
+			TryAccessModel(MODEL_BODY_PANTS  + MAX_CLASS + i, "Data\\Player\\", "PantClass2",  i + 1);
+			TryAccessModel(MODEL_BODY_GLOVES + MAX_CLASS + i, "Data\\Player\\", "GloveClass2", i + 1);
+			TryAccessModel(MODEL_BODY_BOOTS  + MAX_CLASS + i, "Data\\Player\\", "BootClass2",  i + 1);
+		}
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: tier2 OK, loading tier3...");
+
+		for (int i = 0; i < MAX_CLASS; ++i)
+		{
+			TryAccessModel(MODEL_BODY_HELM   + (MAX_CLASS * 2) + i, "Data\\Player\\", "HelmClass3",  i + 1);
+			TryAccessModel(MODEL_BODY_ARMOR  + (MAX_CLASS * 2) + i, "Data\\Player\\", "ArmorClass3", i + 1);
+			TryAccessModel(MODEL_BODY_PANTS  + (MAX_CLASS * 2) + i, "Data\\Player\\", "PantClass3",  i + 1);
+			TryAccessModel(MODEL_BODY_GLOVES + (MAX_CLASS * 2) + i, "Data\\Player\\", "GloveClass3", i + 1);
+			TryAccessModel(MODEL_BODY_BOOTS  + (MAX_CLASS * 2) + i, "Data\\Player\\", "BootClass3",  i + 1);
 		}
 
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"OpenPlayersForCharacterScene: all body models loaded");
+	}
+
+	void EnsureLegacyCharacterSceneDataLoaded()
+	{
 		if (!g_legacy_character_ui_runtime.character_render_assets_loaded)
 		{
-			OpenPlayers();
-			OpenPlayerTextures();
-			OpenItems();
-			OpenItemTextures();
-			OpenSkills();
-			OpenImages();
+			OpenPlayersForCharacterScene();
+			__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag, "Preload: players OK");
+			try
+			{
+				OpenPlayerTextures();
+				__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag, "Preload: player_tex OK");
+			}
+			catch (const std::bad_alloc&)
+			{
+				__android_log_print(ANDROID_LOG_ERROR, kLegacyCharacterLogTag, "Preload: player_tex OOM (skipped)");
+			}
 			g_legacy_character_ui_runtime.character_render_assets_loaded = true;
 		}
+
+		// NOTE: OpenCharacterSceneData() is NOT called here. It reloads bitmaps
+		// (unloading + reloading them), which can destroy textures that were
+		// already loaded by InitializeLegacyCharacterTextures(). It will be
+		// called later by InitializeLegacyCharacterSceneRuntimeIfNeeded()
+		// after the UI is created.
 	}
 
 	void LogLegacyCharacterSceneState(const char* phase)
 	{
 		int live_count = 0;
-		for (int index = 0; index < GetLegacyCharacterUiMaxCharacters(); ++index)
+		for (int index = 0; index < platform::GetLegacyCharacterUiMaxCharacters(); ++index)
 		{
 			if (CharactersClient[index].Object.Live)
 			{
@@ -302,7 +411,7 @@ namespace
 
 		const char* selected_name =
 			(SelectedHero >= 0 &&
-			 SelectedHero < GetLegacyCharacterUiMaxCharacters() &&
+			 SelectedHero < platform::GetLegacyCharacterUiMaxCharacters() &&
 			 CharactersClient[SelectedHero].Object.Live)
 				? CharactersClient[SelectedHero].ID
 				: "-";
@@ -408,10 +517,36 @@ namespace
 			character->Object.Angle[0] = 0.0f;
 			character->Object.Angle[1] = 0.0f;
 			character->Object.Angle[2] = angle_z;
-			character->Object.Scale = 1.15f;
+			character->Object.Scale = 1.2f;
 			character->Object.Visible = true;
 			ChangeCharacterExt(entry.slot, const_cast<BYTE*>(&entry.char_set[1]));
+
+			// ChangeCharacterExt sets body parts to specific equipment models
+			// (MODEL_HELM+X, MODEL_ARMOR+X, etc.) which aren't loaded on mobile.
+			// Reset to class body models that we DO have loaded.
+			int skin_index = gCharacterManager.GetSkinModelIndex(character->Class);
+			character->BodyPart[BODYPART_HELM  ].Type = MODEL_BODY_HELM   + skin_index;
+			character->BodyPart[BODYPART_ARMOR ].Type = MODEL_BODY_ARMOR  + skin_index;
+			character->BodyPart[BODYPART_PANTS ].Type = MODEL_BODY_PANTS  + skin_index;
+			character->BodyPart[BODYPART_GLOVES].Type = MODEL_BODY_GLOVES + skin_index;
+			character->BodyPart[BODYPART_BOOTS ].Type = MODEL_BODY_BOOTS  + skin_index;
+			character->Weapon[0].Type = -1;
+			character->Weapon[1].Type = -1;
+			character->Wing.Type      = -1;
+			character->Helper.Type    = -1;
+
 			gCharacterList.SetCharacterPosition(entry.slot);
+
+			if (requires_recreate)
+			{
+				__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+					"Sync slot=%d name=%s class=%d pos=(%.0f,%.0f,%.0f) scale=%.2f",
+					entry.slot,
+					entry.name.c_str(),
+					legacy_class,
+					position_x, position_y, character->Object.Position[2],
+					character->Object.Scale);
+			}
 		}
 
 		for (int index = 0; index < max_characters; ++index)
@@ -460,6 +595,7 @@ namespace
 		EnableMainRender = true;
 		InitCharacterScene = true;
 		FogEnable = false;
+		SceneFlag = CHARACTER_SCENE;
 
 #ifdef PJH_NEW_SERVER_SELECT_MAP
 		gMapManager.WorldActive = WD_74NEW_CHARACTER_SCENE;
@@ -491,8 +627,8 @@ namespace
 		ClearCharacters();
 		gMapManager.WorldActive = desired_world;
 		gMapManager.LoadWorld(gMapManager.WorldActive);
-		OpenCharacterSceneData();
 		EnsureLegacyCharacterSceneDataLoaded();
+		OpenCharacterSceneData();
 
 		CreateCharacterPointer(&CharacterView, MODEL_FACE + 1, 0, 0);
 		CharacterView.Class = 1;
@@ -526,7 +662,7 @@ namespace
 			kLegacyCharacterLogTag,
 			"CharacterScene init world=%d max=%d",
 			desired_world,
-			GetLegacyCharacterUiMaxCharacters());
+			platform::GetLegacyCharacterUiMaxCharacters());
 	}
 }
 
@@ -550,9 +686,14 @@ namespace platform
 		}
 
 		EnsureLegacyCharacterSceneDataLoaded();
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"About to call char_sel_main_win.Create() WindowWidth=%d WindowHeight=%d",
+			WindowWidth, WindowHeight);
 		g_legacy_character_ui_runtime.char_sel_main_win.Create();
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag, "char_sel_main_win.Create() OK");
 		g_legacy_character_ui_runtime.char_sel_main_win.Show(true);
 		g_legacy_character_ui_runtime.char_sel_main_win.Active(true);
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag, "About to call char_make_win.Create()");
 		g_legacy_character_ui_runtime.char_make_win.Create();
 		SetLegacyCharacterCreateWindowVisibleInternal(false);
 		ApplyLegacyCharacterLayout(screen_width, screen_height);
@@ -679,9 +820,40 @@ namespace platform
 		CameraViewNear = 20.0f;
 		CameraViewFar = 7000.0f;
 
+		// Camera setup: origin at character area center, offset/angle from MainOLD CameraWalk[5]
+		CameraFOV = 45.0f;
+		vec3_t cam_origin, cam_offset, cam_angle;
+		Vector(8008.0f, 18885.0f, 0.0f, cam_origin);
+		Vector(0.0f, -100.0f, 80.0f, cam_offset);
+		Vector(-30.0f, 0.0f, 0.0f, cam_angle);
+		MoveLegacyCharacterCamera(cam_origin, cam_offset, cam_angle);
+
 		vec3_t frustrum_position;
 		Vector(9758.0f, 18913.0f, 675.0f, frustrum_position);
-		BeginOpengl(x, y, width, height);
+
+		// BeginOpengl expects "virtual game coordinates" and scales them by
+		// WindowWidth/GetWindowsX (= g_fScreenRate) to get pixel coords.
+		// On Android the bootstrap passes actual EGL surface pixels (e.g. 2700x1280),
+		// but WindowWidth/WindowHeight are from config (1920x1080).  Override them
+		// temporarily so BeginOpengl produces a viewport that matches the EGL surface.
+		const unsigned int saved_WindowWidth = WindowWidth;
+		const unsigned int saved_WindowHeight = WindowHeight;
+		const int saved_OpenglWindowWidth = OpenglWindowWidth;
+		const int saved_OpenglWindowHeight = OpenglWindowHeight;
+		const float saved_rate_x = g_fScreenRate_x;
+		const float saved_rate_y = g_fScreenRate_y;
+
+		const float egl_rate = static_cast<float>(height) / 480.0f;
+		WindowWidth = static_cast<unsigned int>(width);
+		WindowHeight = static_cast<unsigned int>(height);
+		OpenglWindowWidth = width;
+		OpenglWindowHeight = height;
+		g_fScreenRate_x = egl_rate;
+		g_fScreenRate_y = egl_rate;
+
+		// Pass virtual coords (width/rate x height/rate); BeginOpengl scales back to pixels.
+		BeginOpengl(0, 0, static_cast<int>(static_cast<float>(width) / egl_rate),
+			static_cast<int>(static_cast<float>(height) / egl_rate));
 		CreateFrustrum(static_cast<float>(width) / 640.0f, frustrum_position);
 		CreateScreenVector(MouseX, MouseY, MouseTarget);
 
@@ -699,7 +871,7 @@ namespace platform
 			}
 
 			object->Position[2] = 163.0f;
-			Vector(0.0f, 0.0f, 0.0f, character->Object.Light);
+			Vector(1.0f, 1.0f, 1.0f, character->Object.Light);
 		}
 
 		if (SelectedHero >= 0 && selected_object != NULL && selected_object->Live)
@@ -741,12 +913,93 @@ namespace platform
 			object->Visible = true;
 		}
 
+		{
+			int render_live = 0;
+			for (int i = 0; i < GetLegacyCharacterUiMaxCharacters(); ++i)
+			{
+				if (CharactersClient[i].Object.Live)
+					++render_live;
+			}
+			static int last_render_live = -1;
+			if (render_live != last_render_live)
+			{
+				last_render_live = render_live;
+				__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+					"Render: live=%d selected=%d cam=(%.1f,%.1f,%.1f) ang=(%.1f,%.1f,%.1f)",
+					render_live, SelectedHero,
+					CameraPosition[0], CameraPosition[1], CameraPosition[2],
+					CameraAngle[0], CameraAngle[1], CameraAngle[2]);
+			}
+		}
+
 		LogLegacyCharacterSceneState("render");
+
+		// DEBUG: Draw a bright red triangle at the character position to verify projection
+		{
+			platform::RenderBackend& rb = platform::GetRenderBackend();
+			rb.SetTextureEnabled(false);
+			rb.SetDepthTestEnabled(false);
+			rb.SetCullFaceEnabled(false);
+			rb.SetBlendState(false, GL_ONE, GL_ZERO);
+			rb.SetCurrentColor(1.0f, 0.0f, 0.0f, 1.0f);
+
+			// Triangle centered at the first live character's position
+			float cx = 8008.0f, cy = 18885.0f, cz = 200.0f;
+			for (int di = 0; di < GetLegacyCharacterUiMaxCharacters(); ++di)
+			{
+				if (CharactersClient[di].Object.Live)
+				{
+					cx = CharactersClient[di].Object.Position[0];
+					cy = CharactersClient[di].Object.Position[1];
+					cz = CharactersClient[di].Object.Position[2] + 30.0f;
+					break;
+				}
+			}
+
+			platform::Vertex3D debug_tri[3];
+			float tri_size = 50.0f;
+			debug_tri[0] = { cx,              cy,              cz + tri_size, 0, 0, 1, 0, 0, 1 };
+			debug_tri[1] = { cx - tri_size,   cy - tri_size,   cz,           0, 0, 1, 0, 0, 1 };
+			debug_tri[2] = { cx + tri_size,   cy - tri_size,   cz,           0, 0, 1, 0, 0, 1 };
+			rb.DrawTriangleList3D(debug_tri, 3, false, true);
+
+			// Also try a very large triangle in case scale is off
+			float big = 500.0f;
+			platform::Vertex3D big_tri[3];
+			big_tri[0] = { cx,           cy,           cz + big, 0, 0, 0, 1, 0, 1 };
+			big_tri[1] = { cx - big,     cy - big,     cz,       0, 0, 0, 1, 0, 1 };
+			big_tri[2] = { cx + big,     cy - big,     cz,       0, 0, 0, 1, 0, 1 };
+			rb.DrawTriangleList3D(big_tri, 3, false, true);
+
+			rb.SetDepthTestEnabled(true);
+			rb.SetCullFaceEnabled(true);
+			rb.SetTextureEnabled(true);
+			rb.SetCurrentColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+			static int debug_log_count = 0;
+			if (debug_log_count < 3)
+			{
+				++debug_log_count;
+				__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+					"DebugTriangle: pos=(%.1f,%.1f,%.1f) cam=(%.1f,%.1f,%.1f) viewport=%dx%d",
+					cx, cy, cz, CameraPosition[0], CameraPosition[1], CameraPosition[2],
+					OpenglWindowWidth, OpenglWindowHeight);
+			}
+		}
+
 		RenderCharactersClient();
 		BeginBitmap();
 		gCharacterList.RenderCharacterList();
 		EndBitmap();
 		EndOpengl();
+
+		// Restore globals overridden for EGL surface viewport
+		WindowWidth = saved_WindowWidth;
+		WindowHeight = saved_WindowHeight;
+		OpenglWindowWidth = saved_OpenglWindowWidth;
+		OpenglWindowHeight = saved_OpenglWindowHeight;
+		g_fScreenRate_x = saved_rate_x;
+		g_fScreenRate_y = saved_rate_y;
 
 		SceneFlag = previous_scene_flag;
 	}
@@ -882,7 +1135,45 @@ namespace platform
 			return false;
 		}
 
-		SetBoundStatusMessage("Criacao de personagem ainda nao integrada");
+		if (g_legacy_character_ui_runtime.game_server_state == NULL ||
+			!g_legacy_character_ui_runtime.game_server_state->character_list_received)
+		{
+			SetBoundStatusMessage("Lista de personagens nao recebida");
+			return false;
+		}
+
+		const char* name = InputText[0];
+		if (name == NULL || name[0] == '\0')
+		{
+			SetBoundStatusMessage("Digite um nome para o personagem");
+			return false;
+		}
+
+		const size_t name_length = std::strlen(name);
+		if (name_length < 4)
+		{
+			SetBoundStatusMessage("Nome muito curto (minimo 4 caracteres)");
+			return false;
+		}
+
+		const unsigned char character_class = static_cast<unsigned char>(CharacterView.Class);
+		const unsigned char character_skin = static_cast<unsigned char>(CharacterView.Skin);
+
+		if (!RequestCreateCharacterBootstrap(
+			g_legacy_character_ui_runtime.game_server_state,
+			name,
+			character_class,
+			character_skin))
+		{
+			SetBoundStatusMessage("Falha ao enviar criacao de personagem");
+			return false;
+		}
+
+		__android_log_print(ANDROID_LOG_INFO, kLegacyCharacterLogTag,
+			"CreateCharacter name=%s class=%d skin=%d",
+			name, character_class, character_skin);
+
+		SetBoundStatusMessage("Criando personagem...");
 		SetLegacyCharacterCreateWindowVisibleInternal(false);
 		return true;
 	}
@@ -975,7 +1266,7 @@ namespace platform
 		if (g_legacy_character_ui_runtime.game_server_state != NULL &&
 			g_legacy_character_ui_runtime.game_server_state->max_character_count > 0)
 		{
-			return std::max(10, static_cast<int>(g_legacy_character_ui_runtime.game_server_state->max_character_count));
+			return (std::max)(10, static_cast<int>(g_legacy_character_ui_runtime.game_server_state->max_character_count));
 		}
 
 		return 10;
@@ -995,7 +1286,6 @@ namespace platform
 			SetBoundStatusMessage("Menu da tela de personagem");
 			break;
 		case LegacyCharacterUiAction_Delete:
-			SetBoundStatusMessage("Exclusao de personagem ainda nao integrada");
 			break;
 		default:
 			break;

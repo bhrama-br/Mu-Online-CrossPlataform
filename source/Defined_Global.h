@@ -7,7 +7,9 @@
 
 #define PJH_NEW_SERVER_SELECT_MAP
 //#define NEW_MUHELPER_ON
+#if !defined(__ANDROID__)
 #define CONSOLE
+#endif
 
 #define ASG_ADD_GENS_SYSTEM
 #ifdef ASG_ADD_GENS_SYSTEM

@@ -435,7 +435,7 @@ void CPersonalShopTitleImp::CShopTitleDrawObj::Init()
 	m_bHighlight = false;
 }
 
-bool CPersonalShopTitleImp::CShopTitleDrawObj::Create(int key, const std::string& name, const std::string& title, POINT& pos)
+bool CPersonalShopTitleImp::CShopTitleDrawObj::Create(int key, const std::string& name, const std::string& title, POINT pos)
 {
 	m_key = key&0x7FFF;
 	SetBoxContent(name, title);
@@ -461,7 +461,7 @@ void CPersonalShopTitleImp::CShopTitleDrawObj::SetBoxContent(const std::string& 
 	SeparateShopTitle(title, m_topTitle, m_bottomTitle);
 	CalculateBooleanSize(name, m_topTitle, m_bottomTitle, m_size);
 }
-void CPersonalShopTitleImp::CShopTitleDrawObj::SetBoxPos(POINT& pos)
+void CPersonalShopTitleImp::CShopTitleDrawObj::SetBoxPos(POINT pos)
 { 
 	m_pos = pos; 
 }
@@ -531,10 +531,10 @@ void CPersonalShopTitleImp::CShopTitleDrawObj::Draw(int iPkLevel)
 
 	extern float g_fScreenRate_x;
 	extern float g_fScreenRate_y;
-	POINT RenderPos = { m_pos.x/g_fScreenRate_x, m_pos.y/g_fScreenRate_y };
-	SIZE RenderBoxSize = { m_size.cx/g_fScreenRate_x, m_size.cy/g_fScreenRate_y };
-	SIZE RenderIconSize = { m_icon.cx/g_fScreenRate_x, m_icon.cy/g_fScreenRate_y };
-	int iLineHeight = FontHeight/g_fScreenRate_y;
+	POINT RenderPos = { (LONG)(m_pos.x/g_fScreenRate_x), (LONG)(m_pos.y/g_fScreenRate_y) };
+	SIZE RenderBoxSize = { (LONG)(m_size.cx/g_fScreenRate_x), (LONG)(m_size.cy/g_fScreenRate_y) };
+	SIZE RenderIconSize = { (LONG)(m_icon.cx/g_fScreenRate_x), (LONG)(m_icon.cy/g_fScreenRate_y) };
+	int iLineHeight = (int)(FontHeight/g_fScreenRate_y);
 
 	g_pRenderText->SetFont(g_hFontBold);
 	g_pRenderText->SetBgColor(iIconBkColor);

@@ -25,6 +25,28 @@ CLuaDecrypt::~CLuaDecrypt() // OK
 
 bool CLuaDecrypt::LoadFile(char* path) // OK
 {
+#if defined(__ANDROID__)
+	// Normalize Windows backslashes to forward slashes for Linux/Android
+	char normalized_path[MAX_PATH];
+	strncpy(normalized_path, path, MAX_PATH - 1);
+	normalized_path[MAX_PATH - 1] = '\0';
+	for (char* p = normalized_path; *p; ++p) { if (*p == '\\') *p = '/'; }
+	FILE* fp = fopen(normalized_path, "rb");
+	if (!fp) return 0;
+
+	fseek(fp, 0, SEEK_END);
+	this->m_size = (DWORD)ftell(fp);
+	fseek(fp, 0, SEEK_SET);
+
+	if (this->m_buff != 0) { delete[] this->m_buff; this->m_buff = 0; }
+	this->m_buff = new char[this->m_size];
+	if (this->m_buff == 0) { fclose(fp); return 0; }
+
+	size_t read_bytes = fread(this->m_buff, 1, this->m_size, fp);
+	fclose(fp);
+	if (read_bytes != this->m_size) return 0;
+	return 1;
+#else
 	HANDLE file = CreateFile(path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, 0);
 
 	if (file == INVALID_HANDLE_VALUE)
@@ -58,6 +80,7 @@ bool CLuaDecrypt::LoadFile(char* path) // OK
 
 	CloseHandle(file);
 	return 1;
+#endif
 }
 bool CLuaDecrypt::DecryptFile(char* path) // OK
 {

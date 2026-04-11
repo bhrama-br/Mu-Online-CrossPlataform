@@ -21,14 +21,14 @@ bool M34CryingWolf2nd::IsCyringWolf2nd()
 bool M34CryingWolf2nd::CreateCryingWolf2ndObject(OBJECT* pObject)
 {
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 
 	return true;
 }
 bool M34CryingWolf2nd::MoveCryingWolf2ndObject(OBJECT* pObject)
 {
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 	
 	float Luminosity;
 	vec3_t Light;
@@ -97,7 +97,7 @@ bool M34CryingWolf2nd::RenderCryingWolf2ndObjectVisual(OBJECT* pObject, BMD* pMo
 	}
 
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 
 	vec3_t Light;
 
@@ -160,7 +160,7 @@ bool M34CryingWolf2nd::RenderCryingWolf2ndObjectVisual(OBJECT* pObject, BMD* pMo
 bool M34CryingWolf2nd::RenderCryingWolf2ndObjectMesh(OBJECT* pObject, BMD* pModel)
 {
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 
 	return RenderCryingWolf2ndMonsterObjectMesh(pObject, pModel);
 }
@@ -168,7 +168,7 @@ bool M34CryingWolf2nd::RenderCryingWolf2ndObjectMesh(OBJECT* pObject, BMD* pMode
 CHARACTER* M34CryingWolf2nd::CreateCryingWolf2ndMonster(int iType, int PosX, int PosY, int Key)
 {
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 	CHARACTER* pCharacter = NULL;
 	
 	switch(iType)
@@ -232,7 +232,7 @@ CHARACTER* M34CryingWolf2nd::CreateCryingWolf2ndMonster(int iType, int PosX, int
 bool M34CryingWolf2nd::MoveCryingWolf2ndMonsterVisual(OBJECT* pObject, BMD* pModel)
 {
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 	switch(pObject->Type)
 	{
 	case MODEL_MONSTER01+95:
@@ -384,7 +384,7 @@ void M34CryingWolf2nd::MoveCryingWolf2ndBlurEffect(CHARACTER* pCharacter, OBJECT
 bool M34CryingWolf2nd::AttackEffectCryingWolf2ndMonster(CHARACTER* pCharacter, OBJECT* pObject, BMD* pModel)
 {
 	if(!IsCyringWolf2nd())
-		return false;
+		return NULL;
 	
 	switch(pObject->Type)
 	{

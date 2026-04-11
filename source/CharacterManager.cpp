@@ -46,7 +46,7 @@ CCharacterManager::~CCharacterManager() // OK
 
 int CCharacterManager::GetCharacterIndex(CHARACTER* pChar)
 {
-	return ((int)pChar - (int)&CharactersClient[0]) / sizeof(CHARACTER);
+	return (int)(((intptr_t)pChar - (intptr_t)&CharactersClient[0]) / sizeof(CHARACTER));
 }
 
 BYTE CCharacterManager::ChangeServerClassTypeToClientClassType(const BYTE byServerClassType)
@@ -263,9 +263,9 @@ const char* CCharacterManager::GetCharacterClassText(const BYTE byClass)
 		return GlobalText[1689];
 #ifdef PBG_ADD_NEWCHAR_MONK
 	else if(byCharacterClass == CLASS_RAGEFIGHTER)
-		return GlobalText[3150];	// 3150 "·¹ÀÌÁöÆÄÀÌÅÍ"
+		return GlobalText[3150];	// 3150 "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"
 	else if(byCharacterClass == CLASS_TEMPLENIGHT)
-		return GlobalText[3151];	// 3151 "ÅÛÇÃ³ªÀÌÆ®"
+		return GlobalText[3151];	// 3151 "ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½Æ®"
 #endif //PBG_ADD_NEWCHAR_MONK
 	return GlobalText[2305];
 }

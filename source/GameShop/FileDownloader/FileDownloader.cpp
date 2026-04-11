@@ -15,7 +15,9 @@
 #include "FTPConnecter.h"
 #include <GameShop\ShopListManager\interface\PathMethod\\Path.h>
 
+#if !defined(__ANDROID__)
 #include <process.h>
+#endif
 
 FileDownloader::FileDownloader(IDownloaderStateEvent* pStateEvent,
                                DownloadServerInfo* pServerInfo,

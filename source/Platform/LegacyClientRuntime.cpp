@@ -9,20 +9,20 @@
 #include "ZzzCharacter.h"
 
 #include "Platform/RenderBackend.h"
+#include "SimpleModulus.h"
 
 #include <algorithm>
 #include <cstring>
 
 class CUIManager;
 class CUIMapName;
+class CUITextInputBox;
+class CChatRoomSocketList;
 
-#if !defined(MU_ANDROID_HAS_WINMAIN_RUNTIME)
-static const int kLegacyProtocolVersionSize = 5;
-static const int kLegacyProtocolSerialSize = 16;
-
-BYTE Version[kLegacyProtocolVersionSize] = { 0 };
-BYTE Serial[kLegacyProtocolSerialSize + 1] = { 0 };
-#endif
+// Version/Serial are defined in WSclient.cpp (now compiled on Android)
+#include "WSclient.h"
+extern BYTE Version[SIZE_PROTOCOLVERSION];
+extern BYTE Serial[SIZE_PROTOCOLSERIAL + 1];
 
 	namespace
 	{
@@ -86,6 +86,96 @@ BYTE Serial[kLegacyProtocolSerialSize + 1] = { 0 };
 			Version[4] = static_cast<BYTE>(client_version[6] + 5);
 		}
 	}
+}
+
+// --- CSimpleModulus stubs (Android: no-op pass-through) ---
+// Originally provided by prebuilt SimpleModulus.lib on Windows.
+// The stubs were in LegacyCharacterSceneLinkCompat.cpp but that file is now
+// excluded by MU_ANDROID_HAS_ZZZSCENE_RUNTIME guard, so we provide them here.
+DWORD CSimpleModulus::s_dwSaveLoadXOR[SIZE_ENCRYPTION_KEY] = { 0 };
+
+CSimpleModulus::CSimpleModulus()
+{
+	Init();
+}
+
+CSimpleModulus::~CSimpleModulus()
+{
+}
+
+void CSimpleModulus::Init(void)
+{
+	memset(m_dwModulus, 0, sizeof(m_dwModulus));
+	memset(m_dwEncryptionKey, 0, sizeof(m_dwEncryptionKey));
+	memset(m_dwDecryptionKey, 0, sizeof(m_dwDecryptionKey));
+	memset(m_dwXORKey, 0, sizeof(m_dwXORKey));
+}
+
+int CSimpleModulus::Encrypt(void* lpTarget, void* lpSource, int iSize)
+{
+	if (lpTarget != NULL && lpSource != NULL && iSize > 0)
+	{
+		memcpy(lpTarget, lpSource, static_cast<size_t>(iSize));
+	}
+	return iSize;
+}
+
+int CSimpleModulus::Decrypt(void* lpTarget, void* lpSource, int iSize)
+{
+	if (lpTarget != NULL && lpSource != NULL && iSize > 0)
+	{
+		memcpy(lpTarget, lpSource, static_cast<size_t>(iSize));
+	}
+	return iSize;
+}
+
+void CSimpleModulus::EncryptBlock(void* lpTarget, void* lpSource, int nSize)
+{
+	(void)lpTarget; (void)lpSource; (void)nSize;
+}
+
+int CSimpleModulus::DecryptBlock(void* lpTarget, void* lpSource)
+{
+	(void)lpTarget; (void)lpSource;
+	return 0;
+}
+
+int CSimpleModulus::AddBits(void* lpBuffer, int nNumBufferBits, void* lpBits, int nInitialBit, int nNumBits)
+{
+	(void)lpBuffer; (void)nNumBufferBits; (void)lpBits; (void)nInitialBit; (void)nNumBits;
+	return 0;
+}
+
+void CSimpleModulus::Shift(void* lpBuffer, int nByte, int nShift)
+{
+	(void)lpBuffer; (void)nByte; (void)nShift;
+}
+
+int CSimpleModulus::GetByteOfBit(int nBit)
+{
+	return (nBit >> 3) + ((nBit & 7) ? 1 : 0);
+}
+
+BOOL CSimpleModulus::SaveAllKey(char* lpszFileName) { (void)lpszFileName; return FALSE; }
+BOOL CSimpleModulus::LoadAllKey(char* lpszFileName) { (void)lpszFileName; return FALSE; }
+BOOL CSimpleModulus::SaveEncryptionKey(char* lpszFileName) { (void)lpszFileName; return FALSE; }
+BOOL CSimpleModulus::LoadEncryptionKey(char* lpszFileName) { (void)lpszFileName; return FALSE; }
+BOOL CSimpleModulus::SaveDecryptionKey(char* lpszFileName) { (void)lpszFileName; return FALSE; }
+BOOL CSimpleModulus::LoadDecryptionKey(char* lpszFileName) { (void)lpszFileName; return FALSE; }
+BOOL CSimpleModulus::SaveKey(char* lpszFileName, unsigned short sID, BOOL bMod, BOOL bEnc, BOOL bDec, BOOL bXOR)
+{
+	(void)lpszFileName; (void)sID; (void)bMod; (void)bEnc; (void)bDec; (void)bXOR;
+	return FALSE;
+}
+BOOL CSimpleModulus::LoadKey(char* lpszFileName, unsigned short sID, BOOL bMod, BOOL bEnc, BOOL bDec, BOOL bXOR)
+{
+	(void)lpszFileName; (void)sID; (void)bMod; (void)bEnc; (void)bDec; (void)bXOR;
+	return FALSE;
+}
+BOOL CSimpleModulus::LoadKeyFromBuffer(BYTE* pbyBuffer, BOOL bMod, BOOL bEnc, BOOL bDec, BOOL bXOR)
+{
+	(void)pbyBuffer; (void)bMod; (void)bEnc; (void)bDec; (void)bXOR;
+	return FALSE;
 }
 
 #if !defined(MU_ANDROID_HAS_ZZZOPENGLUTIL_RUNTIME)
@@ -171,16 +261,9 @@ int SelectedHero = -1;
 int SelectedCharacter = -1;
 #endif
 
-#if !defined(MU_ANDROID_HAS_ZZZCHARACTER_RUNTIME)
-namespace
-{
-	CHARACTER g_android_legacy_characters[MAX_CHARACTERS_CLIENT] = {};
-}
-
-CHARACTER* CharactersClient = g_android_legacy_characters;
+CHARACTER* CharactersClient = NULL;
 CHARACTER CharacterView = {};
-CHARACTER* Hero = &g_android_legacy_characters[0];
-#endif
+CHARACTER* Hero = NULL;
 
 #if !defined(MU_ANDROID_HAS_WINMAIN_RUNTIME)
 float Time_Effect = 0.0f;
@@ -213,13 +296,47 @@ bool g_bWndActive = true;
 CUIManager* g_pUIManager = NULL;
 CUIMapName* g_pUIMapName = NULL;
 CTimer* g_pTimer = new CTimer();
+CUITextInputBox* g_pSinglePasswdInputBox = NULL;
+CUITextInputBox* g_pSingleTextInputBox = NULL;
+CChatRoomSocketList* g_pChatRoomSocketList = NULL;
+
+// --- Winmain.cpp function stubs (Android does not compile Winmain.cpp) ---
+bool g_bEnterPressed = false;
+int g_iNoMouseTime = 0;
+
+void CheckHack(void)
+{
+}
+
+DWORD GetCheckSum(WORD wKey)
+{
+	(void)wKey;
+	return 0;
+}
+
+void CloseMainExe(void)
+{
+}
+
+GLvoid KillGLWindow(GLvoid)
+{
+	platform::ShutdownRenderBackend();
+}
+
+// Winmain.h declares 'extern void DestroyWindow();' (no-arg variant)
+// This is separate from the Win32 API DestroyWindow(HWND) stubbed in Win32SecondaryStubs.h
+void DestroyWindow()
+{
+}
+
 #endif
 
 namespace platform
 {
 	void InitializeLegacyClientRuntime()
 	{
-		for (int index = 0; index < static_cast<int>(_countof(RandomTable)); ++index)
+		static const int kRandomTableSize = 100;
+		for (int index = 0; index < kRandomTableSize; ++index)
 		{
 			RandomTable[index] = (index * 37) % 360;
 		}
@@ -252,7 +369,7 @@ namespace platform
 		g_bUseWindowMode = config->window_mode ? TRUE : FALSE;
 		CInput::Instance().AndroidConfigure(g_hWnd, static_cast<long>(WindowWidth), static_cast<long>(WindowHeight));
 
-		CopyCString(m_ID, sizeof(m_ID), config->player_id.c_str());
+		CopyCString(m_ID, 11, config->player_id.c_str());
 		CopyCString(g_aszMLSelection, sizeof(g_aszMLSelection), config->language.c_str());
 		g_strSelectedML = g_aszMLSelection;
 	}
@@ -296,7 +413,7 @@ namespace platform
 		}
 
 		ZeroMemory(Serial, sizeof(Serial));
-		const size_t serial_copy_size = std::min(state->client_serial.size(), sizeof(Serial) - 1);
+		const size_t serial_copy_size = (std::min)(state->client_serial.size(), sizeof(Serial) - 1);
 		memcpy(Serial, state->client_serial.c_str(), serial_copy_size);
 	}
 

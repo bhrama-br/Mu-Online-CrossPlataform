@@ -4,6 +4,7 @@
 #include "HelperView.h"
 #include "Console.h"
 #include "ZzzCharacter.h"
+#include "ZzzScene.h"
 #include "ElementPet.h"
 
 CHelperManager gHelperManager;

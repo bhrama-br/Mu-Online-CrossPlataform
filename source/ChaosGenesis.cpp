@@ -407,8 +407,8 @@ void CChaosGenesis::RenderItensChaosMachine(float x, float y, float height, int 
 			EnableAlphaTest(true);
 
 			if (itemTarget.pItemObj->Jewel_Of_Harmony_Option > 0 || itemTarget.pItemObj->Jewel_Of_Harmony_OptionLevel > 0 || (itemAttr->m_byItemSlot >= 240 && itemAttr->m_byItemSlot <= 248)) {
-				//sprintf_s(buffer, sizeof(buffer), "%s", gVisualInventory.GetItemHybridName(itemTarget.pItemObj->Type));
-				sprintf_s(buffer, sizeof(buffer), "%s", itemAttr->Name);
+				//snprintf(buffer, sizeof(buffer), "%s", gVisualInventory.GetItemHybridName(itemTarget.pItemObj->Type));
+				snprintf(buffer, sizeof(buffer), "%s", itemAttr->Name);
 			}
 			else {
 				if (((itemTarget.pItemObj->Level >> 3) & 0xF) == 0) 
@@ -419,14 +419,14 @@ void CChaosGenesis::RenderItensChaosMachine(float x, float y, float height, int 
 
 							count = itemTarget.pItemObj->Durability;
 						}
-						sprintf_s(buffer, sizeof(buffer), "%s (%dx)", itemAttr->Name, count);
+						snprintf(buffer, sizeof(buffer), "%s (%dx)", itemAttr->Name, count);
 					}
 					else {
-						sprintf_s(buffer, sizeof(buffer), "%s", itemAttr->Name);
+						snprintf(buffer, sizeof(buffer), "%s", itemAttr->Name);
 					}
 				}
 				else {
-					sprintf_s(buffer, sizeof(buffer), "%s +%d", itemAttr->Name, (itemTarget.pItemObj->Level >> 3) & 0xF);
+					snprintf(buffer, sizeof(buffer), "%s +%d", itemAttr->Name, (itemTarget.pItemObj->Level >> 3) & 0xF);
 				}
 			}
 
@@ -606,7 +606,7 @@ void CChaosGenesis::OpeningProcess()
 
 bool CChaosGenesis::ClosingProcess()
 {
-	SendChaosGenesisClose();
+	SendChaosGenesisClose(0, 0);
 	return true;
 }
 

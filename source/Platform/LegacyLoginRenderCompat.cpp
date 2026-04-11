@@ -97,12 +97,17 @@ void RenderBitmap(int Texture, float x, float y, float Width, float Height, floa
 	platform::GetRenderBackend().SetCurrentColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 #else
+#if !defined(MU_ANDROID_HAS_ZZZINTERFACE_RUNTIME)
 int MouseUpdateTime = 0;
 int MouseUpdateTimeMax = 6;
-
-CWideScreen GWidescreen;
 #endif
 
+#if !defined(MU_ANDROID_HAS_WIDESCREEN_RUNTIME)
+CWideScreen GWidescreen;
+#endif
+#endif
+
+#if !defined(MU_ANDROID_HAS_WIDESCREEN_RUNTIME)
 void CWideScreen::Init()
 {
 	DisplayWinCDepthBox = static_cast<int>(static_cast<float>(WindowWidth) / g_fScreenRate_y - 640.0f);
@@ -205,5 +210,6 @@ void CWideScreen::CreateNButton(int Image, float x, float y, float width, float 
 void CWideScreen::SceneLogin()
 {
 }
+#endif
 
 #endif

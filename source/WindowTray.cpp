@@ -7,6 +7,16 @@
 
 TrayMode gTrayMode;
 
+#if defined(__ANDROID__)
+
+void TrayMode::Load() { this->InTray = false; }
+void TrayMode::SwitchState() {}
+void TrayMode::ShowNotify(bool Mode) { (void)Mode; }
+void TrayMode::ShowMessage(DWORD Type, char* Title, char* Message) { (void)Type; (void)Title; (void)Message; }
+void TrayMode::ShowMessageLua(DWORD Type, char* Title, char* Message) { (void)Type; (void)Title; (void)Message; }
+
+#else
+
 void TrayMode::Load()
 {
 	this->TempIconProc = NULL;
@@ -91,3 +101,4 @@ void TrayMode::ShowMessageLua(DWORD Type, char * Title, char * Message)
 	this->ShowMessage(Type, Title, Message);
 }
 
+#endif // !__ANDROID__

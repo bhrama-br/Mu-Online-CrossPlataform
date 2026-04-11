@@ -15,9 +15,6 @@
 #include "UIControls.h"
 #include "GameCensorship.h"
 #include "ServerListManager.h"
-#if defined(__ANDROID__)
-#include "Platform/LegacyLoginUiRuntime.h"
-#endif
 
 #define	SSW_GAP_WIDTH	28
 #define	SSW_GAP_HEIGHT	5
@@ -405,8 +402,6 @@ bool CServerSelWin::CursorInWin(int nArea)
 
 void CServerSelWin::UpdateWhileActive(double dDeltaTick)
 {
-#if defined(__ANDROID__)
-	(void)dDeltaTick;
 	int i;
 
 	for( i=0 ; i<SSW_SERVER_G_MAX ; i++ )
@@ -420,46 +415,7 @@ void CServerSelWin::UpdateWhileActive(double dDeltaTick)
 
 			m_aServerGroupBtn[i].SetCheck(true);
 			m_iSelectServerBtnIndex = i;
-			platform::HandleLegacyServerGroupAction(i);
-		}
-	}
 
-	if( m_pSelectServerGroup == NULL )
-		return;
-
-	CServerInfo* pServerInfo = NULL;
-	for( i=0 ; i<m_icntServer ; i++ )
-	{
-		if (m_aServerBtn[i].IsClick())
-		{
-			pServerInfo = m_pSelectServerGroup->GetServerInfo(i);
-
-			if( pServerInfo == NULL )
-				return;
-
-			if (pServerInfo->m_iPercent < 100)
-			{
-				platform::HandleLegacyServerRoomAction(i);
-				break;
-			}
-		}
-	}
-	return;
-#else
-	int i;
-
-	for( i=0 ; i<SSW_SERVER_G_MAX ; i++ )
-	{
-		if (m_aServerGroupBtn[i].IsClick())
-		{
-			if(m_iSelectServerBtnIndex != -1 )
-			{
-				m_aServerGroupBtn[m_iSelectServerBtnIndex].SetCheck(false);
-			}
-
-			m_aServerGroupBtn[i].SetCheck(true);
-			m_iSelectServerBtnIndex = i;
-			
 			SendRequestServerList();
 		}
 	}
@@ -480,7 +436,7 @@ void CServerSelWin::UpdateWhileActive(double dDeltaTick)
 			if (pServerInfo->m_iPercent < 100)
 			{
 				CUIMng::Instance().HideWin(this);
-				
+
 				SendRequestServerAddress(pServerInfo->m_iConnectIndex);
 
 				int iCensorshipIndex = CGameCensorship::STATE_12;
@@ -504,7 +460,7 @@ void CServerSelWin::UpdateWhileActive(double dDeltaTick)
 				}
 
 				g_ServerListManager->SetSelectServerInfo(m_pSelectServerGroup->m_szName,pServerInfo->m_iIndex, iCensorshipIndex, pServerInfo->m_byNonPvP, bTestServer);
-				
+
 				break;
 			}
 			else if (pServerInfo->m_iPercent < 128)
@@ -513,22 +469,18 @@ void CServerSelWin::UpdateWhileActive(double dDeltaTick)
 			}
 		}
 	}
-#endif
 }
 
 void CServerSelWin::RenderControls()
 {
-#if defined(__ANDROID__)
-	return;
-#else
 	int i = 0;
-	
+
 	g_pRenderText->SetFont(g_hFixFont);
 	g_pRenderText->SetTextColor(CLRDW_WHITE);
 	g_pRenderText->SetBgColor(0);
-	
+
 	CWin::RenderButtons();
-	
+
 	if( m_pSelectServerGroup != NULL )
 	{
 		for (i=0 ; i<m_icntServer; i++)
@@ -544,5 +496,4 @@ void CServerSelWin::RenderControls()
 			g_pRenderText->RenderText(90, 164 - 30, GlobalText[567]);
 		}
 	}
-#endif
 }

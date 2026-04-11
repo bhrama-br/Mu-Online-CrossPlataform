@@ -976,7 +976,7 @@ void NewMoveCharacterScene()
 
     MoveCamera();
 
-#if defined _DEBUG || defined FOR_WORK
+#if (defined _DEBUG || defined FOR_WORK) && !defined(__ANDROID__)
 	char lpszTemp[256];
 	if (::Util_CheckOption(::GetCommandLine(), 'c', lpszTemp))
 	{
@@ -1303,7 +1303,9 @@ bool NewRenderLogInScene(HDC hDC)
 	if(!InitLogIn) return false;
 
 
+#ifdef CONSOLE
 	Console.Write(1, "CurrentProtocolState: %d / %d", CurrentProtocolState, InitLogIn);
+#endif
 
 	FogEnable = false;
 // 	extern GLfloat FogColor[4];
@@ -2362,6 +2364,7 @@ void UpdateSceneState()
 
 	MoveNotices();
 
+#if !defined(__ANDROID__)
 	if (PressKey(VK_SNAPSHOT))
 	{
 		if (GrabEnable)
@@ -2371,7 +2374,7 @@ void UpdateSceneState()
 	}
 
 
-	
+
 	SYSTEMTIME st;
 	GetLocalTime(&st);
 	sprintf(GrabFileName, gProtect->m_MainInfo.ScreenShotPath, st.wMonth, st.wDay, st.wHour, st.wMinute, GrabScreen);
@@ -2381,7 +2384,7 @@ void UpdateSceneState()
 	wsprintf(lpszTemp, " [%s / %s]", g_ServerListManager->GetSelectServerName(), Hero->ID);
 	strcat(Text, lpszTemp);
 	int iCaptureMode = 1;
-	
+
 	if (GrabEnable)
 	{
 		SaveScreen();
@@ -2393,6 +2396,7 @@ void UpdateSceneState()
 	}
 
 	GrabEnable = false;
+#endif
 }
 
 void MainScene(HDC hDC)
@@ -2668,9 +2672,9 @@ void MainScene(HDC hDC)
 #ifdef ASG_ADD_MAP_KARUTAN
 			if (!IsKarutanMap())
 				StopBuffer(SOUND_KARUTAN_DESERT_ENV, true);
-			if (World != WD_80KARUTAN1)
+			if (gMapManager.WorldActive != WD_80KARUTAN1)
 				StopBuffer(SOUND_KARUTAN_INSECT_ENV, true);
-			if (World != WD_81KARUTAN2)
+			if (gMapManager.WorldActive != WD_81KARUTAN2)
 				StopBuffer(SOUND_KARUTAN_KARDAMAHAL_ENV, true);
 #endif	// ASG_ADD_MAP_KARUTAN
 

@@ -11,7 +11,9 @@
 #include "stdafx.h"
 #ifdef KJH_ADD_INGAMESHOP_UI_SYSTEM
 #include "ListManager.h"
+#if !defined(__ANDROID__)
 #include <process.h>
+#endif
 
 CListManager::CListManager() // OK
 {

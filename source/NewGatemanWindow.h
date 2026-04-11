@@ -11,7 +11,7 @@
 
 #include "NewUIBase.h"
 
-class CNewGatemanWindow : public CNewUIObj  
+class CNewGatemanWindow : public SEASON3B::CNewUIObj  
 {
 public:
 	CNewGatemanWindow();

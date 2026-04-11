@@ -35,16 +35,80 @@
 #define ERROR_LOAD_SCRIPT					0x07
 #define ERROR_THREAD						0x08
 
+#if !defined(__ANDROID__)
 #include <Windows.h>
 #include <Wininet.h>
-#include <vector>
-#include <string>
 #include <tchar.h>
 #include <crtdbg.h>
 #include <strsafe.h>
+#endif
+#include <vector>
+#include <string>
+#if !defined(__ANDROID__)
 #include "GameShop\ShopListManager\interface\WZResult\WZResult.h"
 #include "GameShop\ShopListManager\interface\DownloadInfo.h"
 #include "GameShop\ShopListManager\interface\FileDownloader.h"
+#else
+// Android stubs for Windows-only ShopListManager types
+#ifndef MAX_ERROR_MESSAGE
+#define MAX_ERROR_MESSAGE 1024
+#endif
+
+// Error code defines (from ErrorCodeDefine.h)
+#define PT_FAILED      0x40000000
+#define PT_EXCEPTION   (0x00000001 | PT_FAILED)
+#define PT_NO_INFO     (0x00000002 | PT_FAILED)
+#define PT_NO_DLL_INFO (0x00000003 | PT_FAILED)
+#define PT_LOADLIBRARY (0x00000004 | PT_FAILED)
+#define PT_GETPROCADDR (0x00000005 | PT_FAILED)
+
+#define DL_FAILED                    0x20000000
+#define DL_EXCEPTION                (0x00000001 | DL_FAILED)
+#define DL_NO_INFO                  (0x00000002 | DL_FAILED)
+#define DL_BEGIN_THREAD_CONNECTION  (0x00000003 | DL_FAILED)
+
+typedef enum _DownloaderType { FTP, HTTP } DownloaderType;
+class WZResult {
+public:
+	DWORD m_dwErrorCode;
+	DWORD m_dwWindowErrorCode;
+	char m_szErrorMessage[MAX_ERROR_MESSAGE];
+	WZResult() : m_dwErrorCode(0), m_dwWindowErrorCode(0) { m_szErrorMessage[0] = '\0'; }
+	BOOL IsSuccess() { return (m_dwErrorCode == 0 && m_dwWindowErrorCode == 0) ? TRUE : FALSE; }
+	char* GetErrorMessage() { return m_szErrorMessage; }
+	DWORD GetErrorCode() { return m_dwErrorCode; }
+	void SetSuccessResult() { m_dwErrorCode = 0; m_dwWindowErrorCode = 0; }
+	void BuildSuccessResult() { m_dwErrorCode = 0; m_dwWindowErrorCode = 0; }
+	void BuildResult(DWORD ec, DWORD wec, const char* fmt, ...) { m_dwErrorCode = ec; m_dwWindowErrorCode = wec; (void)fmt; }
+	void SetResult(DWORD ec, DWORD wec, const char* fmt, ...) { m_dwErrorCode = ec; m_dwWindowErrorCode = wec; (void)fmt; }
+};
+class DownloadServerInfo {
+public:
+	char m_szServerURL[INTERNET_MAX_URL_LENGTH];
+	DownloaderType m_DownloaderType;
+	DownloadServerInfo() : m_DownloaderType(HTTP) { m_szServerURL[0] = '\0'; }
+	DownloaderType GetDownloaderType() { return m_DownloaderType; }
+	void SetDownloaderType(DownloaderType t) { m_DownloaderType = t; }
+	void SetPassiveMode(bool) {}
+	void SetOverWrite(int) {}
+	void SetConnectTimeout(int) {}
+	void SetServerInfo(const char*, unsigned short, const char*, const char*) {}
+};
+class DownloadFileInfo {
+public:
+	char m_szRemoteFilePath[INTERNET_MAX_URL_LENGTH];
+	DownloadFileInfo() { m_szRemoteFilePath[0] = '\0'; }
+	const char* GetRemoteFilePath() { return m_szRemoteFilePath; }
+	void SetFilePath(const char*, const char*, const char*, const char*) {}
+};
+class IDownloaderStateEvent {};
+class FileDownloader {
+public:
+	FileDownloader(IDownloaderStateEvent*, DownloadServerInfo*, DownloadFileInfo*) {}
+	void Break() {}
+	WZResult DownloadFile() { WZResult r; r.m_dwErrorCode = 1; return r; }
+};
+#endif
 
 #if !defined (INVALID_FILE_ATTRIBUTES) 
 #define INVALID_FILE_ATTRIBUTES ((DWORD)-1) 

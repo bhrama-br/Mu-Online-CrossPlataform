@@ -413,7 +413,7 @@ CQueue<T>::~CQueue()
 template <class T>
 BOOL CQueue<T>::Insert( T NewElement)
 {
-	if ( NULL == AddTail( NewElement))
+	if ( NULL == this->AddTail( NewElement))
 	{	// ½ÇÆÐÇÏ¸é
 		return ( FALSE);
 	}

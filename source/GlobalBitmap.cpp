@@ -10,6 +10,46 @@
 #include "./Utilities/Log/ErrorReport.h"
 #include "./Utilities/Log/muConsoleDebug.h"
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+#include <cerrno>
+#include <dirent.h>
+
+namespace
+{
+	// Case-insensitive file open for Android (ext4 is case-sensitive).
+	// Tries exact path first, then scans directory for a case-insensitive match.
+	FILE* fopen_ci(const std::string& path, const char* mode)
+	{
+		FILE* f = fopen(path.c_str(), mode);
+		if (f) return f;
+
+		// Split into directory and filename
+		size_t slash = path.rfind('/');
+		if (slash == std::string::npos) return nullptr;
+
+		std::string dir = path.substr(0, slash);
+		std::string name = path.substr(slash + 1);
+
+		DIR* d = opendir(dir.c_str());
+		if (!d) return nullptr;
+
+		struct dirent* entry;
+		while ((entry = readdir(d)) != nullptr)
+		{
+			if (strcasecmp(entry->d_name, name.c_str()) == 0)
+			{
+				std::string matched = dir + "/" + entry->d_name;
+				closedir(d);
+				return fopen(matched.c_str(), mode);
+			}
+		}
+		closedir(d);
+		return nullptr;
+	}
+}
+#endif
+
 CBitmapCache::CBitmapCache() 
 {
 	memset(m_QuickCache, 0, sizeof(QUICK_CACHE)*NUMBER_OF_QUICK_CACHE);
@@ -405,12 +445,16 @@ bool CGlobalBitmap::LoadImage(GLuint uiBitmapIndex, const std::string& filename,
 	
 	std::string ext;
 	SplitExt(filename, ext, false);
-	
+
 	if(0 == _stricmp(ext.c_str(), "jpg"))
 		return OpenJpeg(uiBitmapIndex, filename, uiFilter, uiWrapMode);
 	else if(0 == _stricmp(ext.c_str(), "tga"))
 		return OpenTga(uiBitmapIndex, filename, uiFilter, uiWrapMode);
-	
+
+#if defined(__ANDROID__)
+	__android_log_print(ANDROID_LOG_WARN, "MUAndroidTexture",
+		"LoadImage: unrecognized ext '%s' for %s", ext.c_str(), filename.c_str());
+#endif
 	return false;
 }
 void CGlobalBitmap::UnloadImage(GLuint uiBitmapIndex, bool bForce)
@@ -574,11 +618,15 @@ bool CGlobalBitmap::OpenJpeg(GLuint uiBitmapIndex, const std::string& filename, 
 	std::string filename_ozj;
 	ExchangeExt(filename, "OZJ", filename_ozj);
 
+#if defined(__ANDROID__)
+	FILE* infile = fopen_ci(filename_ozj, "rb");
+#else
 	FILE* infile = fopen(filename_ozj.c_str(), "rb");
-	if(infile == NULL) 
+#endif
+	if(infile == NULL)
 	{
 		return false;
-	}	
+	}
 
 
 	fseek(infile, 0, SEEK_END);
@@ -592,7 +640,10 @@ bool CGlobalBitmap::OpenJpeg(GLuint uiBitmapIndex, const std::string& filename, 
 	const BYTE gFileProtectHeader[8] = { 0x68, 0xA2, 0xD2, 0x20, 0xA4, 0x43, 0x41, 0xDE };
 	const BYTE gFileProtectXorTable[16] = { 0x13, 0xA4, 0x85, 0x1F, 0x1E, 0x19, 0x6F, 0xBE, 0x8A, 0x22, 0x29, 0xDE, 0x03, 0x6E, 0x99, 0xB7 };
 
-	if (DataBytes >= sizeof(gFileProtectHeader) && memcmp(CData, gFileProtectHeader, sizeof(gFileProtectHeader)) == 0)
+	bool hasProtectHeader = (DataBytes >= (int)sizeof(gFileProtectHeader) &&
+		memcmp(CData, gFileProtectHeader, sizeof(gFileProtectHeader)) == 0);
+
+	if (hasProtectHeader)
 	{
 		for (int n = 0; n < ((int)(DataBytes - sizeof(gFileProtectHeader))); n++)
 		{
@@ -604,25 +655,56 @@ bool CGlobalBitmap::OpenJpeg(GLuint uiBitmapIndex, const std::string& filename, 
 		DataBytes -= sizeof(gFileProtectHeader);
 	}
 
-	DataBytes -= 24;
+	// Find JPEG SOI marker (FF D8).
+	// OZJ format: 24-byte header (copy of first 24 bytes of JPEG) + real JPEG.
+	// Check byte 24 FIRST (standard OZJ), then byte 0 (raw JPEG / no header).
+	int jpegOffset = -1;
+	if (DataBytes >= 26 && CData[24] == 0xFF && CData[25] == 0xD8)
+	{
+		jpegOffset = 24;
+	}
+	else if (DataBytes >= 2 && CData[0] == 0xFF && CData[1] == 0xD8)
+	{
+		jpegOffset = 0;
+	}
+	if (jpegOffset < 0)
+	{
+#if defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_WARN, "MUAndroidTexture",
+			"OpenJpeg: no JPEG SOI found in %s (size=%d first4=%02x%02x%02x%02x)",
+			filename.c_str(), DataBytes,
+			DataBytes > 0 ? CData[0] : 0, DataBytes > 1 ? CData[1] : 0,
+			DataBytes > 2 ? CData[2] : 0, DataBytes > 3 ? CData[3] : 0);
+#endif
+		delete[] CData;
+		return false;
+	}
+
+	DataBytes -= jpegOffset;
 
 	unsigned char* Data = new unsigned char[DataBytes];
-	memcpy(Data, CData+24, DataBytes);
+	memcpy(Data, CData + jpegOffset, DataBytes);
 	delete[] CData;
-	
+
 	struct jpeg_decompress_struct cinfo;
 	struct my_error_mgr jerr;
+	memset(&cinfo, 0, sizeof(cinfo));
 	cinfo.err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = my_error_exit;
-	if (setjmp(jerr.setjmp_buffer)) 
+	if (setjmp(jerr.setjmp_buffer))
 	{
+#if defined(__ANDROID__)
+		__android_log_print(ANDROID_LOG_WARN, "MUAndroidTexture",
+			"OpenJpeg: JPEG decode failed for %s (offset=%d dataSize=%d)",
+			filename.c_str(), jpegOffset, DataBytes);
+#endif
 		jpeg_destroy_decompress(&cinfo);
-		fclose(infile);
+		delete[] Data;
 		return false;
 	}
 
 	jpeg_create_decompress(&cinfo);
-	jpeg_mem_src(&cinfo, Data, DataBytes);
+	jpeg_mem_src(&cinfo, Data, (unsigned long)DataBytes);
 	(void) jpeg_read_header(&cinfo, TRUE);
 	(void) jpeg_start_decompress(&cinfo);
 
@@ -645,7 +727,7 @@ bool CGlobalBitmap::OpenJpeg(GLuint uiBitmapIndex, const std::string& filename, 
 
 		pNewBitmap->BitmapIndex = uiBitmapIndex;
 
-		filename._Copy_s(pNewBitmap->FileName, MAX_BITMAP_FILE_NAME, MAX_BITMAP_FILE_NAME);
+		{ size_t n = filename.copy(pNewBitmap->FileName, MAX_BITMAP_FILE_NAME - 1); pNewBitmap->FileName[n] = '\0'; }
 
 		pNewBitmap->Width      = (float)Width;
 		pNewBitmap->RealWidth = (float)cinfo.output_width;
@@ -693,7 +775,7 @@ bool CGlobalBitmap::OpenJpeg(GLuint uiBitmapIndex, const std::string& filename, 
 	}
 	(void) jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
-	fclose(infile);
+	delete[] Data;
 	return true;
 }
 bool CGlobalBitmap::OpenTga(GLuint uiBitmapIndex, const std::string& filename, GLuint uiFilter, GLuint uiWrapMode)
@@ -701,7 +783,11 @@ bool CGlobalBitmap::OpenTga(GLuint uiBitmapIndex, const std::string& filename, G
 	std::string filename_ozt;
 	ExchangeExt(filename, "OZT", filename_ozt);
 
+#if defined(__ANDROID__)
+	FILE *fp = fopen_ci(filename_ozt, "rb");
+#else
     FILE *fp = fopen(filename_ozt.c_str(), "rb");
+#endif
     if(fp == NULL)
 	{
 		return false;
@@ -764,7 +850,7 @@ bool CGlobalBitmap::OpenTga(GLuint uiBitmapIndex, const std::string& filename, G
 	
 	pNewBitmap->BitmapIndex = uiBitmapIndex;
 
-	filename._Copy_s(pNewBitmap->FileName, MAX_BITMAP_FILE_NAME, MAX_BITMAP_FILE_NAME);
+	{ size_t n = filename.copy(pNewBitmap->FileName, MAX_BITMAP_FILE_NAME - 1); pNewBitmap->FileName[n] = '\0'; }
 	
 	pNewBitmap->Width      = (float)Width;
 	pNewBitmap->RealWidth = (float)nx;
@@ -922,6 +1008,13 @@ bool CGlobalBitmap::Save_Image(const unicode::t_string& src, const unicode::t_st
 void CGlobalBitmap::my_error_exit(j_common_ptr cinfo)
 {
 	my_error_ptr myerr = (my_error_ptr) cinfo->err;
+#if defined(__ANDROID__)
+	char buffer[JMSG_LENGTH_MAX] = {0};
+	(*cinfo->err->format_message)(cinfo, buffer);
+	__android_log_print(ANDROID_LOG_ERROR, "MUAndroidTexture",
+		"JPEG error: %s", buffer);
+#else
 	(*cinfo->err->output_message) (cinfo);
+#endif
 	longjmp(myerr->setjmp_buffer, 1);
 }

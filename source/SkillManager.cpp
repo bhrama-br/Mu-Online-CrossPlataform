@@ -6,6 +6,7 @@
 #include "CharacterManager.h"
 #include "MapManager.h"
 #include "ZzzCharacter.h"
+#include "ZzzInterface.h"
 
 CSkillManager gSkillManager;
 

@@ -5,6 +5,33 @@
 //#include <dxerr8.h>
 #include "DebugAngel.h"
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+
+void WriteDebugInfoStr( char *lpszFileName, char *lpszToWrite)
+{
+	__android_log_print(ANDROID_LOG_DEBUG, "DebugAngel", "%s: %s", lpszFileName, lpszToWrite);
+}
+
+void DebugAngel_Write( char *lpszFileName, ...)
+{
+	char lpszBuffer[1024];
+	va_list va;
+	va_start( va, lpszFileName);
+	char *lpszFormat = va_arg( va, char*);
+	vsnprintf( lpszBuffer, sizeof(lpszBuffer), lpszFormat, va);
+	WriteDebugInfoStr( lpszFileName, lpszBuffer);
+	va_end( va);
+}
+
+void DebugAngel_HexWrite( char *lpszFileName, void *pBuffer, int iSize)
+{
+	(void)lpszFileName;
+	(void)pBuffer;
+	(void)iSize;
+}
+
+#else
 
 void WriteDebugInfoStr( char *lpszFileName, char *lpszToWrite)
 {
@@ -41,7 +68,7 @@ void DebugAngel_HexWrite( char *lpszFileName, void *pBuffer, int iSize)
 		lpszStr[0] = '\0';
 		int iShow = min( iSize - i, 16);
 
-		// Hex Ãâ·Â
+		// Hex ï¿½ï¿½ï¿½
 		for ( int j = 0; j < iShow; j++, pbySeek++)
 		{
 			char lpszTemp[16];
@@ -54,3 +81,5 @@ void DebugAngel_HexWrite( char *lpszFileName, void *pBuffer, int iSize)
 
 	CloseHandle( hFile);
 }
+
+#endif

@@ -65,6 +65,10 @@ namespace platform
 		unsigned char character_class_code;
 		unsigned char character_move_count;
 		unsigned char max_character_count;
+		bool create_character_pending;
+		unsigned char create_character_result;
+		bool delete_character_pending;
+		unsigned char delete_character_result;
 		bool map_join_requested;
 		bool map_join_received;
 		unsigned char selected_character_slot;
@@ -94,6 +98,10 @@ namespace platform
 	bool RequestGameServerLoginBootstrap(GameServerBootstrapState* state);
 	bool RequestJoinMapServerBootstrap(GameServerBootstrapState* state, const char* character_name);
 	bool RequestJoinMapServerBySlotBootstrap(GameServerBootstrapState* state, unsigned char character_slot);
+	bool RequestCreateCharacterBootstrap(GameServerBootstrapState* state, const char* name, unsigned char character_class, unsigned char skin);
+	bool RequestDeleteCharacterBootstrap(GameServerBootstrapState* state, unsigned char character_slot, const char* resident_id);
+	unsigned char ConsumeCreateCharacterResult(GameServerBootstrapState* state);
+	unsigned char ConsumeDeleteCharacterResult(GameServerBootstrapState* state);
 	void DisconnectGameServerBootstrap(GameServerBootstrapState* state, const char* reason);
 	const char* GetGameServerBootstrapStatusLabel(GameServerBootstrapStatus status);
 }

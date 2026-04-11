@@ -1,7 +1,9 @@
 #ifndef _CBTMESSAGEBOX_H_
 #define _CBTMESSAGEBOX_H_
 
+#if !defined(__ANDROID__)
 #include <windows.h>
+#endif
 
 #pragma warning(disable : 4786)
 #include <string>

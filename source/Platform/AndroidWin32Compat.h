@@ -12,6 +12,18 @@
 #include <strings.h>
 #include <wchar.h>
 
+#ifndef __int8
+#define __int8 char
+#endif
+
+#ifndef __int16
+#define __int16 short
+#endif
+
+#ifndef __int32
+#define __int32 int
+#endif
+
 #ifndef __int64
 #define __int64 long long
 #endif
@@ -26,6 +38,18 @@
 
 #ifndef APIENTRY
 #define APIENTRY
+#endif
+
+#ifndef PASCAL
+#define PASCAL
+#endif
+
+#ifndef FAR
+#define FAR
+#endif
+
+#ifndef CONST
+#define CONST const
 #endif
 
 #ifndef IN
@@ -96,6 +120,7 @@ typedef UINT_PTR WPARAM;
 typedef LONG_PTR LPARAM;
 typedef LONG_PTR LRESULT;
 typedef DWORD COLORREF;
+typedef int64_t LONGLONG;
 typedef uint64_t ULONGLONG;
 typedef int SOCKET;
 typedef void* LPOVERLAPPED;
@@ -139,6 +164,36 @@ typedef union _LARGE_INTEGER
 	long long QuadPart;
 } LARGE_INTEGER, *PLARGE_INTEGER;
 
+#pragma pack(push, 2)
+typedef struct tagBITMAPFILEHEADER
+{
+	WORD bfType;
+	DWORD bfSize;
+	WORD bfReserved1;
+	WORD bfReserved2;
+	DWORD bfOffBits;
+} BITMAPFILEHEADER;
+#pragma pack(pop)
+
+typedef struct tagBITMAPINFOHEADER
+{
+	DWORD biSize;
+	LONG biWidth;
+	LONG biHeight;
+	WORD biPlanes;
+	WORD biBitCount;
+	DWORD biCompression;
+	DWORD biSizeImage;
+	LONG biXPelsPerMeter;
+	LONG biYPelsPerMeter;
+	DWORD biClrUsed;
+	DWORD biClrImportant;
+} BITMAPINFOHEADER;
+
+#ifndef BI_RGB
+#define BI_RGB 0
+#endif
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -161,6 +216,14 @@ typedef union _LARGE_INTEGER
 
 #ifndef _MAX_PATH
 #define _MAX_PATH MAX_PATH
+#endif
+
+#ifndef TEXT
+#define TEXT(x) x
+#endif
+
+#ifndef _T
+#define _T(x) x
 #endif
 
 #ifndef _MAX_DRIVE
@@ -332,8 +395,74 @@ typedef union _LARGE_INTEGER
 #ifndef VK_DOWN
 #define VK_DOWN 0x28
 #endif
+#ifndef VK_PRIOR
+#define VK_PRIOR 0x21
+#endif
+#ifndef VK_NEXT
+#define VK_NEXT 0x22
+#endif
+#ifndef VK_END
+#define VK_END 0x23
+#endif
+#ifndef VK_HOME
+#define VK_HOME 0x24
+#endif
+#ifndef VK_SNAPSHOT
+#define VK_SNAPSHOT 0x2C
+#endif
 #ifndef VK_DELETE
 #define VK_DELETE 0x2E
+#endif
+#ifndef VK_INSERT
+#define VK_INSERT 0x2D
+#endif
+#ifndef VK_NUMPAD0
+#define VK_NUMPAD0 0x60
+#endif
+#ifndef VK_F1
+#define VK_F1 0x70
+#endif
+#ifndef VK_F2
+#define VK_F2 0x71
+#endif
+#ifndef VK_F3
+#define VK_F3 0x72
+#endif
+#ifndef VK_F4
+#define VK_F4 0x73
+#endif
+#ifndef VK_F5
+#define VK_F5 0x74
+#endif
+#ifndef VK_F6
+#define VK_F6 0x75
+#endif
+#ifndef VK_F7
+#define VK_F7 0x76
+#endif
+#ifndef VK_F8
+#define VK_F8 0x77
+#endif
+#ifndef VK_F9
+#define VK_F9 0x78
+#endif
+#ifndef VK_F10
+#define VK_F10 0x79
+#endif
+#ifndef VK_F11
+#define VK_F11 0x7A
+#endif
+#ifndef VK_F12
+#define VK_F12 0x7B
+#endif
+#ifndef VK_F13
+#define VK_F13 0x7C
+#endif
+#ifndef VK_F14
+#define VK_F14 0x7D
+#endif
+#ifndef VK_F15
+#define VK_F15 0x7E
 #endif
 
 #ifndef WS_CHILD
@@ -414,13 +543,32 @@ typedef union _LARGE_INTEGER
 #ifndef _stricmp
 #define _stricmp strcasecmp
 #endif
+#ifndef _strcmpi
+#define _strcmpi strcasecmp
+#endif
 #ifndef _strnicmp
 #define _strnicmp strncasecmp
+#endif
+#ifndef strnicmp
+#define strnicmp strncasecmp
 #endif
 
 #ifndef _ASSERT
 #define _ASSERT(expression) assert(expression)
 #endif
+
+#include <ctype.h>
+inline char* _strupr(char* str)
+{
+	if (str != NULL)
+	{
+		for (char* p = str; *p; ++p)
+		{
+			*p = (char)toupper((unsigned char)*p);
+		}
+	}
+	return str;
+}
 
 inline void ZeroMemory(void* destination, size_t size)
 {
@@ -601,6 +749,90 @@ void _splitpath(const char* path, char* drive, char* dir, char* fname, char* ext
 
 #ifndef ShellExecute
 #define ShellExecute ShellExecuteA
+#endif
+
+#ifndef GetCurrentDirectory
+#define GetCurrentDirectory GetCurrentDirectoryA
+#endif
+
+// Win32 file API constants
+#ifndef GENERIC_READ
+#define GENERIC_READ 0x80000000L
+#endif
+#ifndef GENERIC_WRITE
+#define GENERIC_WRITE 0x40000000L
+#endif
+#ifndef OPEN_EXISTING
+#define OPEN_EXISTING 3
+#endif
+#ifndef FILE_ATTRIBUTE_NORMAL
+#define FILE_ATTRIBUTE_NORMAL 0x00000080
+#endif
+#ifndef INVALID_HANDLE_VALUE
+#define INVALID_HANDLE_VALUE ((HANDLE)(intptr_t)-1)
+#endif
+
+// CreateFile stub — always returns INVALID_HANDLE_VALUE on Android
+inline HANDLE CreateFileA(const char*, DWORD, DWORD, void*, DWORD, DWORD, HANDLE)
+{
+    return INVALID_HANDLE_VALUE;
+}
+inline BOOL CloseHandle(HANDLE) { return TRUE; }
+
+#ifndef CreateFile
+#define CreateFile CreateFileA
+#endif
+
+// MSVC sprintf_s: map to snprintf, adding sizeof(buf) as size.
+// For the 3-arg form (sprintf_s(buf, sizeof(buf), fmt, ...)),
+// callers must be changed to just sprintf(buf, fmt, ...) or use snprintf directly.
+#ifndef sprintf_s
+#define sprintf_s(buf, ...) snprintf(buf, sizeof(buf), __VA_ARGS__)
+#endif
+
+#ifndef _countof
+#define _countof(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
+
+#ifndef strcpy_s
+inline int strcpy_s(char* dest, size_t dest_size, const char* src)
+{
+	if (dest == NULL || dest_size == 0) return -1;
+	strncpy(dest, src ? src : "", dest_size - 1);
+	dest[dest_size - 1] = '\0';
+	return 0;
+}
+// MSVC 2-arg template overload: strcpy_s(charArray, src) deduces size from array
+template<size_t N>
+inline int strcpy_s(char (&dest)[N], const char* src)
+{
+	return strcpy_s(dest, N, src);
+}
+#endif
+
+#ifndef strcat_s
+inline int strcat_s(char* dest, size_t dest_size, const char* src)
+{
+	if (dest == NULL || dest_size == 0) return -1;
+	size_t len = strlen(dest);
+	if (len < dest_size - 1)
+	{
+		strncat(dest, src ? src : "", dest_size - len - 1);
+	}
+	return 0;
+}
+inline int strcat_s(char* dest, const char* src)
+{
+	return strcat_s(dest, strlen(dest) + strlen(src ? src : "") + 1, src);
+}
+#endif
+
+#ifndef wvsprintf
+#define wvsprintf(buf, fmt, args) vsnprintf(buf, 1024, fmt, args)
+#endif
+
+#ifndef _snprintf_s
+#define _snprintf_s(buf, size, count, ...) snprintf(buf, size, __VA_ARGS__)
 #endif
 
 namespace platform

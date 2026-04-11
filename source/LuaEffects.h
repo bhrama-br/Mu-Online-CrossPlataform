@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Lua.h"
+#include "ZzzBMD.h"
+#include "ZzzEffect.h"
 
 void FuncCreateParticle(DWORD BMDStruct, int Bitmap, int SubType, int Link, float Scale, vec3_t Light, DWORD ObjectStruct);
 

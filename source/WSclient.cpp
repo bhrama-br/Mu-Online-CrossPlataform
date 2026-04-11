@@ -54,9 +54,10 @@
 #include "CharacterManager.h"
 #include "SkillManager.h"
 #include "NewUIPCPoint.h"
-#ifdef KJH_ADD_INGAMESHOP_UI_SYSTEM	
-#include "GameShop\InGameShopSystem.h"
-#include "GameShop\MsgBoxIGSCommon.h"
+#ifdef KJH_ADD_INGAMESHOP_UI_SYSTEM
+#include "GameShop/InGameShopSystem.h"
+#include "GameShop/MsgBoxIGSCommon.h"
+#include "GameShop/NewUIInGameShop.h"
 #endif // KJH_ADD_INGAMESHOP_UI_SYSTEM
 #include "NewInventory.h"
 #include "w_MapHeaders.h"
@@ -68,7 +69,9 @@
 #include "GambleSystem.h"
 #include "QuestMng.h"
 #ifdef PBG_ADD_SECRETBUFF
+#if !defined(__ANDROID__)
 #include "FatigueTimeSystem.h"
+#endif
 #endif //PBG_ADD_SECRETBUFF
 #include "ServerListManager.h"
 #ifdef PBG_ADD_NEWCHAR_MONK_SKILL
@@ -325,7 +328,9 @@ void ReceiveServerList(BYTE* ReceiveBuffer)
 	}
 
 	CUIMng& rUIMng = CUIMng::Instance();
+#if !defined(__ANDROID__)
 	if (!rUIMng.m_CreditWin.IsShow())
+#endif
 	{
 		rUIMng.ShowWin(&rUIMng.m_ServerSelWin);
 		rUIMng.m_ServerSelWin.UpdateDisplay();
@@ -336,7 +341,7 @@ void ReceiveServerList(BYTE* ReceiveBuffer)
 
 	g_ConsoleDebug->Write(MCD_RECEIVE, "0xF4 [ReceiveServerList]");
 }
-void ReceiveServerConnect(BYTE* ReceiveBuffer) //Recebe informação do ConnectServer sobre a sala e envia a conexão para a sala escolhida
+void ReceiveServerConnect(BYTE* ReceiveBuffer) //Recebe informaï¿½ï¿½o do ConnectServer sobre a sala e envia a conexï¿½o para a sala escolhida
 {
 	LPPRECEIVE_SERVER_ADDRESS Data = (LPPRECEIVE_SERVER_ADDRESS)ReceiveBuffer;
 	char IP[16];
@@ -411,7 +416,7 @@ void ReceiveJoinServer(BYTE* ReceiveBuffer)
 
 	g_GuildCache.Reset();
 
-#if defined _DEBUG || defined FOR_WORK
+#if (defined _DEBUG || defined FOR_WORK) && !defined(__ANDROID__)
 	if (Data2->Result == 0x01)
 	{
 		char lpszTemp[256];
@@ -596,8 +601,10 @@ void ReceiveCreateCharacter(BYTE* ReceiveBuffer)
 		CurrentProtocolState = RECEIVE_CREATE_CHARACTER_SUCCESS;
 		CUIMng& rUIMng = CUIMng::Instance();
 		rUIMng.CloseMsgWin();
+#if !defined(__ANDROID__)
 		rUIMng.m_CharSelMainWin.UpdateDisplay();
 		rUIMng.m_CharInfoBalloonMng.UpdateDisplay();
+#endif
 
 		if (gProtect->m_MainInfo.CharListS13 == 1)
 		{
@@ -1589,7 +1596,7 @@ void ReceiveChatKey(BYTE* ReceiveBuffer)
 	int Key = ((int)(Data->KeyH) << 8) + Data->KeyL;
 	int Index = FindCharacterIndex(Key);
 
-	if (Hero->GuildStatus == G_MASTER && !strcmp(CharactersClient[Index].ID, "±æµå ¸¶½ºÅÍ"))
+	if (Hero->GuildStatus == G_MASTER && !strcmp(CharactersClient[Index].ID, "ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"))
 	{
 		g_pNewUISystem->Show(SEASON3B::INTERFACE_NPCGUILDMASTER);
 
@@ -3657,7 +3664,7 @@ void ReceiveMagicFinish(BYTE* ReceiveBuffer)
 	case AT_SKILL_BLAST_FREEZE:
 		UnRegisterBuff(eDeBuff_Freeze, o);
 		break;
-		//  ¸ó½ºÅÍ.
+		//  ï¿½ï¿½ï¿½ï¿½.
 	case AT_SKILL_MONSTER_MAGIC_DEF:
 		SetActionDestroy_Def(o);
 		UnRegisterBuff(eBuff_Defense, o);
@@ -4094,7 +4101,7 @@ BOOL ReceiveMagic(BYTE* ReceiveBuffer, int Size, BOOL bEncrypted)
 		PlayBuffer(SOUND_SKILL_SWORD4);
 		break;
 
-	case AT_SKILL_SWORD5://º£±â
+	case AT_SKILL_SWORD5://ï¿½ï¿½ï¿½ï¿½
 		if (sc->SwordCount % 2 == 0)
 		{
 			SetAction(so, PLAYER_ATTACK_SKILL_SWORD1 + MagicNumber - AT_SKILL_SWORD1);
@@ -4119,7 +4126,7 @@ BOOL ReceiveMagic(BYTE* ReceiveBuffer, int Size, BOOL bEncrypted)
 		PlayBuffer(SOUND_SKILL_SWORD4);
 		break;
 
-	case AT_SKILL_SPEAR:	// Ã¢Âî¸£±â
+	case AT_SKILL_SPEAR:	// Ã¢ï¿½î¸£ï¿½ï¿½
 		if (sc->Helper.Type == MODEL_HELPER + 37)
 			SetAction(so, PLAYER_FENRIR_ATTACK_SPEAR);
 		else
@@ -5996,9 +6003,9 @@ BOOL ReceiveTalk(BYTE* ReceiveBuffer, BOOL bEncrypted)
 		g_MixRecipeMgr.SetMixType(SEASON3A::MIXTYPE_GOBLIN_NORMAL);
 		g_pNewUISystem->Show(SEASON3B::INTERFACE_MIXINVENTORY);
 		//BYTE *pbyChaosRate = ( &Data->Value) + 1;
-		//int iDummyRate[6];	// ±¤ÀåÇ¥ È®·üÀ» ¼­¹ö¿¡¼­ ¹ÞÀ¸³ª »ç¿ëÇÏÁö ¾Ê°í ¹ö¸²
+		//int iDummyRate[6];	// ï¿½ï¿½ï¿½ï¿½Ç¥ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½
 		//for ( int i = 0; i < 6; ++i)
-		//	iDummyRate[i] = ( int)pbyChaosRate[i];	// ±¤ÀåÇ¥ È®·üÀ» ¼­¹ö¿¡¼­ ¹ÞÀ¸³ª »ç¿ëÇÏÁö ¾Ê°í ¹ö¸²(½ºÅ©¸³Æ®»ç¿ë)
+		//	iDummyRate[i] = ( int)pbyChaosRate[i];	// ï¿½ï¿½ï¿½ï¿½Ç¥ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½)
 		break;
 
 	case 4:
@@ -7165,7 +7172,7 @@ void ReceiveGuildInfo(BYTE* ReceiveBuffer)
 	int Index = g_GuildCache.SetGuildMark(Data->GuildKey, Data->UnionName, Data->GuildName, Data->Mark);
 }
 
-// ±æµåÁ÷Ã¥À» ÀÓ¸í/º¯°æ/ÇØÁ¦ °á°ú
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ã¥ï¿½ï¿½ ï¿½Ó¸ï¿½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 void ReceiveGuildAssign(BYTE* ReceiveBuffer)
 {
 	char szTemp[MAX_GLOBAL_TEXT_STRING] = "Invalid GuildAssign";
@@ -7857,7 +7864,7 @@ void ReceiveMix(BYTE* ReceiveBuffer)
 			g_pChatListBox->AddText("", szText, SEASON3B::TYPE_ERROR_MESSAGE);
 			break;
 			// 			case SEASON3A::MIXTYPE_TRAINER:
-			// 				unicode::_sprintf(szText, GlobalText[1208]);	// ºÎÈ° ½ÇÆÐ
+			// 				unicode::_sprintf(szText, GlobalText[1208]);	// ï¿½ï¿½È° ï¿½ï¿½ï¿½ï¿½
 			// 				g_pChatListBox->AddText("", szText, SEASON3B::TYPE_ERROR_MESSAGE);
 			// 				break;
 		case SEASON3A::MIXTYPE_OSBOURNE:
@@ -9001,7 +9008,7 @@ void ReceiveFriendList(BYTE* ReceiveBuffer)
 	g_pFriendList->Sort(1);
 	g_pWindowMgr->RefreshMainWndPalList();
 
-	// Ã¤ÆÃ ¼­¹ö »ì¾Æ³²
+	// Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ³ï¿½
 	g_pWindowMgr->SetServerEnable(TRUE);
 	if (g_iChatInputType == 0) SendRequestChangeState(2);
 
@@ -12838,7 +12845,7 @@ bool ReceiveIGS_UpdateBanner(BYTE* pReceiveBuffer)
 #endif // KJH_ADD_INGAMESHOP_UI_SYSTEM
 
 
-#ifdef PBG_ADD_SECRETBUFF
+#if defined(PBG_ADD_SECRETBUFF) && !defined(__ANDROID__)
 bool ReceiveFatigueTime(BYTE* pReceiveBuffer)
 {
 	LPPMSG_FATIGUEPERCENTAGE Data = (LPPMSG_FATIGUEPERCENTAGE)pReceiveBuffer;
@@ -14470,7 +14477,7 @@ BOOL TranslateProtocol(int HeadCode, BYTE* ReceiveBuffer, int Size, BOOL bEncryp
 		case 0x14:
 			ReceiveDoppelGangerMonsterGoal(ReceiveBuffer);
 			break;
-#ifdef PBG_ADD_SECRETBUFF
+#if defined(PBG_ADD_SECRETBUFF) && !defined(__ANDROID__)
 		case 0x15:
 			ReceiveFatigueTime(ReceiveBuffer);
 			break;

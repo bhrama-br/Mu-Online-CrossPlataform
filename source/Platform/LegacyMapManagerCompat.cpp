@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) && !defined(MU_ANDROID_HAS_MAPMANAGER_RUNTIME)
 
 #include "MapManager.h"
 

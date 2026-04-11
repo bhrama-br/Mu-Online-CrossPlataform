@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "NewUICommonMessageBox.h"
 #include "NewUICustomMessageBox.h"
+#include "NewUISystem.h"
 #include "NewUIGuildMakeWindow.h"
 #include "NewUIGuildInfoWindow.h"
 #include "NewUIMyInventory.h"
@@ -1589,7 +1590,7 @@ bool SEASON3B::CFenrirRepairMsgBoxLayout::SetLayout()
 CALLBACK_RESULT SEASON3B::CFenrirRepairMsgBoxLayout::OkBtnDown(class CNewUIMessageBoxBase* pOwner, const leaf::xstreambuf& xParam)
 {
 	CFenrirRepairMsgBox* pMsgBox = dynamic_cast<CFenrirRepairMsgBox*>(pOwner);
-	if(pMsgBox == false)
+	if(pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -1871,7 +1872,9 @@ CALLBACK_RESULT SEASON3B::CChaosCastleTimeCheckMsgBoxLayout::OkBtnDown(class CNe
 	}
 	else
 	{
+#if !defined(__ANDROID__)
 		__asm { int 3 };
+#endif
 	}
 	
 	PlayBuffer(SOUND_CLICK01);
@@ -2796,7 +2799,7 @@ bool SEASON3B::CPersonalShopItemValueCheckMsgBoxLayout::SetLayout()
 CALLBACK_RESULT SEASON3B::CPersonalShopItemValueCheckMsgBoxLayout::OkBtnDown(class CNewUIMessageBoxBase* pOwner, const leaf::xstreambuf& xParam)
 {
 	CNewUI3DItemCommonMsgBox* pMsgBox = dynamic_cast<CNewUI3DItemCommonMsgBox*>(pOwner);
-	if(pMsgBox == false)
+	if(pMsgBox == NULL)
 	{
 		return CALLBACK_CONTINUE;
 	}
@@ -2919,7 +2922,7 @@ CALLBACK_RESULT SEASON3B::CPersonalShopItemBuyMsgBoxLayout::CancelBtnDown(class 
 bool SEASON3B::CPCRoomPointItemBuyMsgBoxLayout::SetLayout()
 {
 	CNewUI3DItemCommonMsgBox* pMsgBox = GetMsgBox();
-	if (false == pMsgBox)
+	if (NULL == pMsgBox)
 		return false;
 	if (false == pMsgBox->Create(MSGBOX_COMMON_TYPE_OKCANCEL))
 		return false;

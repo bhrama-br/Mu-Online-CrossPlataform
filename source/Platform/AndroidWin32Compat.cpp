@@ -3,6 +3,7 @@
 #if defined(__ANDROID__)
 
 #include "Platform/GameAssetPath.h"
+#include "Platform/AndroidTextRenderer.h"
 
 #include <android/log.h>
 
@@ -441,7 +442,7 @@ DWORD GetPrivateProfileStringA(const char* section, const char* key, const char*
 	return CopyResultString(std::string(), default_value, returned_string, returned_string_size);
 }
 
-BOOL GetTextExtentPointA(HDC, LPCSTR text, int length, LPSIZE size)
+BOOL GetTextExtentPointA(HDC hdc, LPCSTR text, int length, LPSIZE size)
 {
 	if (size == NULL)
 	{
@@ -449,7 +450,18 @@ BOOL GetTextExtentPointA(HDC, LPCSTR text, int length, LPSIZE size)
 	}
 
 	const int safe_length = length >= 0 ? length : (text != NULL ? static_cast<int>(strlen(text)) : 0);
-	size->cx = safe_length * 8;
+
+	// Convert to wide string and use AndroidTextRenderer
+	if (text != NULL && safe_length > 0)
+	{
+		wchar_t wbuf[1024];
+		int wlen = mbstowcs(wbuf, text, safe_length < 1023 ? safe_length : 1023);
+		if (wlen < 0) wlen = safe_length;
+		wbuf[wlen] = L'\0';
+		return platform::android_text::GetTextExtent(hdc, wbuf, wlen, &size->cx, &size->cy) ? TRUE : FALSE;
+	}
+
+	size->cx = 0;
 	size->cy = 16;
 	return TRUE;
 }
@@ -459,18 +471,34 @@ BOOL GetTextExtentPoint32A(HDC hdc, LPCSTR text, int length, LPSIZE size)
 	return GetTextExtentPointA(hdc, text, length, size);
 }
 
-BOOL TextOutA(HDC, int, int, LPCSTR, int)
+BOOL TextOutA(HDC hdc, int x, int y, LPCSTR text, int length)
 {
-	return TRUE;
+	if (!text || length <= 0) return TRUE;
+
+	// Convert to wide string and use AndroidTextRenderer
+	wchar_t wbuf[1024];
+	int wlen = mbstowcs(wbuf, text, length < 1023 ? length : 1023);
+	if (wlen < 0) wlen = length;
+	wbuf[wlen] = L'\0';
+	return platform::android_text::TextOut(hdc, x, y, wbuf, wlen) ? TRUE : FALSE;
 }
 
-HFONT CreateFontA(int, int, int, int, int, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, const char*)
+HFONT CreateFontA(int height, int width, int escapement, int orientation, int weight, DWORD italic, DWORD underline, DWORD strikeout, DWORD charset, DWORD outprec, DWORD clipprec, DWORD quality, DWORD pitch_family, const char* face_name)
 {
-	return reinterpret_cast<HFONT>(1);
+	(void)width; (void)escapement; (void)orientation; (void)italic;
+	(void)underline; (void)strikeout; (void)charset; (void)outprec;
+	(void)clipprec; (void)quality; (void)pitch_family;
+	return reinterpret_cast<HFONT>(platform::android_text::CreateFontHandle(height, weight, face_name));
 }
 
-BOOL DeleteObject(HGDIOBJ)
+BOOL DeleteObject(HGDIOBJ obj)
 {
+	if (platform::android_text::IsFontHandle(obj))
+	{
+		platform::android_text::DeleteFontHandle(obj);
+	}
+	// DIB sections are freed via free() — but the original code doesn't call
+	// DeleteObject on the buffer pointer in the right way, so we just return TRUE.
 	return TRUE;
 }
 

@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "Platform/RenderColorCompat.h"
 #include "NewUIMyQuestInfoWindow.h"
+#include "NewUISystem.h"
+#include "NewUICommonMessageBox.h"
 #include "wsclientinline.h"
 #include "csQuest.h"
 

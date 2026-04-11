@@ -5,6 +5,7 @@
 #include "NewUIGuildMakeWindow.h"
 #include "NewUIManager.h"
 #include "NewUICommonMessageBox.h"
+#include "NewUISystem.h"
 #include "DSPlaySound.h"
 #include "wsclientinline.h"
 #include "ZzzInterface.h"

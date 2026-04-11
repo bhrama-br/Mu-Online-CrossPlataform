@@ -18,6 +18,14 @@
 #include "./Utilities/Log/muConsoleDebug.h"
 //#include "FillPolygon.h"
 #include "GMBattleCastle.h"
+
+#if defined(__ANDROID__)
+#include <android/log.h>
+// Verify struct sizes match Win32 BMD file format expectations.
+static_assert(sizeof(Vertex_t) == 16, "Vertex_t size mismatch with BMD file format");
+static_assert(sizeof(Normal_t) == 20, "Normal_t size mismatch with BMD file format");
+static_assert(sizeof(TexCoord_t) == 8, "TexCoord_t size mismatch with BMD file format");
+#endif
 #include "UIMng.h"
 #include "CameraMove.h"
 #include "PhysicsManager.h"
@@ -325,8 +333,8 @@ void BMD::Transform(float(*BoneMatrix)[3][4], vec3_t BoundingBoxMin, vec3_t Boun
         OBB->YAxis[1] = (BoundingBoxMax[1] - BoundingBoxMin[1]);
         OBB->ZAxis[2] = (BoundingBoxMax[2] - BoundingBoxMin[2]);
     }
-    fTransformedSize = std::max(
-        std::max(BoundingMax[0] - BoundingMin[0], BoundingMax[1] - BoundingMin[1]),
+    fTransformedSize = (std::max)(
+        (std::max)(BoundingMax[0] - BoundingMin[0], BoundingMax[1] - BoundingMin[1]),
         BoundingMax[2] - BoundingMin[2]);
     //fTransformedSize *= 0.3f;
     VectorAdd(OBB->StartPos, BodyOrigin, OBB->StartPos);
@@ -2932,8 +2940,8 @@ bool BMD::Open2(char* DirName, char* ModelFileName, bool bReAlloc)
     Version = *((char*)(Data + DataPtr)); DataPtr += 1;
     if (Version == 12)
     {
-        long lSize = *((long*)(Data + DataPtr)); DataPtr += sizeof(long);
-        long lDecSize = MapFileDecrypt(NULL, Data + DataPtr, lSize);
+        int32_t lSize = *((int32_t*)(Data + DataPtr)); DataPtr += sizeof(int32_t);
+        int32_t lDecSize = MapFileDecrypt(NULL, Data + DataPtr, lSize);
         BYTE* pbyDec = new BYTE[lDecSize];
         MapFileDecrypt(pbyDec, Data + DataPtr, lSize);
         delete[] Data;
@@ -3185,6 +3193,7 @@ void BMD::CreateBoundingBox()
         for (int j = 0; j < m->NumVertices; j++)
         {
             Vertex_t* v = &m->Vertices[j];
+            if (v->Node < 0 || v->Node >= MAX_BONES) continue;
             for (int k = 0; k < 3; k++)
             {
                 if (v->Position[k] < BoundingMin[v->Node][k]) BoundingMin[v->Node][k] = v->Position[k];

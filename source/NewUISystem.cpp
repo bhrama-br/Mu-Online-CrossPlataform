@@ -10,6 +10,7 @@
 #include "Interfaces.h"
 #include "ItemMove.h"
 #include "TradeX.h"
+#include "GameShop/NewUIInGameShop.h"
 
 using namespace SEASON3B;
 
@@ -148,10 +149,15 @@ void SEASON3B::CNewUISystem::Release()
 bool SEASON3B::CNewUISystem::LoadMainSceneInterface()
 {
 	gLuaLoadImage.Init();
-	gInterface.Init();
 	g_MessageBox->Show(true);
 	m_pNewChatLogWindow->Show(true);
 	m_pNewSlideWindow->Show(true);
+
+#if !defined(__ANDROID__)
+	// TODO: gInterface.Init() and CChaosGenesis crash on Android — Lua DoFile
+	// crashes after RegisterInterface/RegisterGlobal corrupt the Lua state.
+	gInterface.Init();
+#endif
 
 	m_pNewItemMng = new CNewUIItemMng;
 
@@ -184,9 +190,12 @@ bool SEASON3B::CNewUISystem::LoadMainSceneInterface()
 	if(false == m_pNewMyInventory->Create(m_pNewUIMng, m_pNewUI3DRenderMng, GWidescreen.WidescreenPosX1, 0))
 		return false;	
 
+#if !defined(__ANDROID__)
+	// CChaosGenesis constructor calls Lua DoFile which crashes on Android
 	m_pChaosGenesis = new CChaosGenesis;
 	if (m_pChaosGenesis->Create(m_pNewUIMng, GWidescreen.WidescreenPosX2, 0) == false)
 		return false;
+#endif
 
 	m_pStackInterface = new CStackInterface;
 	if (m_pStackInterface->Create(m_pNewUIMng, (GetWindowsX / 2) - ((230 / 2)), 95) == false)

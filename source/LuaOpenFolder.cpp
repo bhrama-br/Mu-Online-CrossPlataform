@@ -18,8 +18,30 @@ CLuaOpenFolder::~CLuaOpenFolder()
 void CLuaOpenFolder::LoadFolder(lua_State* lua, char* folder)
 {
     char name[MAX_PATH] = { 0 };
-    char wildcard_path[MAX_PATH];
 
+#if defined(__ANDROID__)
+    // Normalize Windows backslashes to forward slashes for Android
+    char normalized_folder[MAX_PATH];
+    strncpy(normalized_folder, folder, MAX_PATH - 1);
+    normalized_folder[MAX_PATH - 1] = '\0';
+    for (char* p = normalized_folder; *p; ++p) { if (*p == '\\') *p = '/'; }
+
+    // Android: use POSIX opendir/readdir
+    DIR* dir = opendir(normalized_folder);
+    if (!dir) return;
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        // Filter for .lua files
+        const char* fname = entry->d_name;
+        size_t len = strlen(fname);
+        if (len < 5 || strcmp(fname + len - 4, ".lua") != 0) continue;
+        if (entry->d_type == DT_DIR) continue;
+
+        wsprintf(name, "%s%s", normalized_folder, fname);
+#else
+    char wildcard_path[MAX_PATH];
     wsprintf(wildcard_path, "%s*.lua", folder);
 
     WIN32_FIND_DATA data;
@@ -37,6 +59,7 @@ void CLuaOpenFolder::LoadFolder(lua_State* lua, char* folder)
         {
 
             wsprintf(name, "%s%s", folder, data.cFileName);
+#endif
 
             std::string script = gFileProtectLua.ConvertMainFilePath((char*)name);
 
@@ -92,9 +115,15 @@ void CLuaOpenFolder::LoadFolder(lua_State* lua, char* folder)
             }
 
             gFileProtectLua.DeleteTemporaryFile();
+#if defined(__ANDROID__)
+    }
+    closedir(dir);
+}
+#else
         }
     } while (FindNextFile(file, &data) != 0);
 }
+#endif
 
 void CLuaOpenFolder::LoadFile(lua_State* L, char* name)
 {

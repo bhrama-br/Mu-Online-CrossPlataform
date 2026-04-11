@@ -239,7 +239,7 @@ bool SEASON3B::CNewUIHotKey::UpdateKeyEvent()
 	{
 		if(gCharacterManager.IsMasterLevel( Hero->Class ) == true 
 	#ifdef PBG_ADD_NEWCHAR_MONK
-			&& GetCharacterClass(Hero->Class) != CLASS_TEMPLENIGHT
+			&& gCharacterManager.GetCharacterClass(Hero->Class) != CLASS_TEMPLENIGHT
 	#endif //PBG_ADD_NEWCHAR_MONK
 			)
 			g_pNewUISystem->Toggle(SEASON3B::INTERFACE_MASTER_LEVEL);

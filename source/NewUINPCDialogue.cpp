@@ -5,8 +5,11 @@
 #include "stdafx.h"
 #include "NewUINPCDialogue.h"
 #include "wsclientinline.h"
+#if !defined(__ANDROID__)
 #include "CRTDBG.h"
+#endif
 #include "Platform/RenderColorCompat.h"
+#include "NewUISystem.h"
 
 using namespace SEASON3B;
 

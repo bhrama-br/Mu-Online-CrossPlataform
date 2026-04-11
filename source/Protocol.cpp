@@ -1,15 +1,24 @@
 #include "stdafx.h"
+#if !defined(__ANDROID__)
 #include <rpc.h>
+#endif
 #include "Protocol.h"
 #include "PacketManager.h"
 #include "Winmain.h"
 
+#if !defined(__ANDROID__)
 #pragma comment(lib, "Rpcrt4.lib")
+#endif
 
 cProtocol gProtocol;
 
 void cProtocol::GetMac()
 {
+#if defined(__ANDROID__)
+	// Android: generate a pseudo hardware ID
+	snprintf(this->mac_addr, sizeof(this->mac_addr), "ANDROID-%08X-%08X-%08X",
+		(unsigned int)time(NULL), (unsigned int)getpid(), 0xDEADBEEF);
+#else
 	DWORD VolumeSerialNumber = 0x5045454;
 
 	GetVolumeInformation("C:\\", 0, 0, &VolumeSerialNumber, 0, 0, 0, 0);
@@ -31,6 +40,7 @@ void cProtocol::GetMac()
 	DWORD ComputerHardwareId4 = ((SystemInfo.wProcessorLevel & 0xFFFF) | (SystemInfo.wProcessorRevision << 16)) ^ 0xB542D8E1;
 
 	sprintf_s(this->mac_addr, "%08X-%08X-%08X-%08X", ComputerHardwareId1, ComputerHardwareId2, ComputerHardwareId3, ComputerHardwareId4);
+#endif
 }
 
 void cProtocol::ClientSendMac()
