@@ -1,4 +1,4 @@
-# RoxGaming MU Client (Android Port)
+# BhramaBR MU Client (Android Port)
 
 Port of the RoxGaming MU 5.2 client to Android.
 
